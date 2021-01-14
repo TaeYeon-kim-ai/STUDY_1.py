@@ -68,3 +68,4 @@ R2 = r2_score(y_test, y_predict)
 print('R2: ', R2)
 
 print('주가 :', x_predict)
+# 

@@ -4,6 +4,8 @@ from tensorflow.keras.models import Sequential, Model, load_model
 from tensorflow.keras.layers import Dense, LSTM, Input, Dropout, Conv1D, MaxPooling1D, Flatten
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 #1.데이터
 data = np.load('./stock_pred/SSD_prepro_data2.npy')
@@ -41,7 +43,6 @@ y = dataset[1:,0,-1]
 x_pred = dataset[-1:,:5,0:10] 
 print(x.shape, y.shape, x_pred.shape)
 # (2393, 5, 10) (2393, 5) (1, 5, 10)
-
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.8, shuffle=True, random_state = 100)
 x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, train_size = 0.8, shuffle= True, random_state = 100)
@@ -88,19 +89,19 @@ dense1 = Dense(16, activation='relu')(dense1)
 outputs = Dense(1, activation= 'relu')(dense1)
 model = Model(inputs = input1, outputs = outputs)
 model.summary()
-model.save('./stock_pred/Stock_SSD_2_model1.h5')#모델저장
+# model.save('./stock_pred/Stock_SSD_2_model1.h5')#모델저장
 # model = load_model('./stock_pred/k51_1_model1.h5')#모델로드
 
 #3.컴파일, 훈련
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-modelpath = './stock_pred/MCP/Stock_SSD_14_{epoch:02d}-{val_loss:.4f}.hdf5'
-cp = ModelCheckpoint(filepath= modelpath, monitor= 'val_loss', save_best_only=True, mode = 'auto')
+# modelpath = './stock_pred/MCP/Stock_SSD_14_{epoch:02d}-{val_loss:.4f}.hdf5'
+#cp = ModelCheckpoint(filepath= modelpath, monitor= 'val_loss', save_best_only=True, mode = 'auto')
 early_stopping = EarlyStopping(monitor = 'loss', patience = 25, mode = 'auto') # #loss값이 가장낮을 때를 10번 지나갈 때 까지 기다렸다가 stop. mode는 min, max, auto조정가능
 model.compile(loss = 'mse', optimizer = 'adam', metrics = ['mae'])
-hist = model.fit(x_train, y_train, epochs = 1000, batch_size = 16, validation_data = (x_val, y_val), verbose = 1 ,callbacks = [early_stopping, cp])
+hist = model.fit(x_train, y_train, epochs = 1000, batch_size = 16, validation_data = (x_val, y_val), verbose = 1 ,callbacks = [early_stopping]) #cp])
 
-model.save('./stock_pred/Stock_SSD_2_model2.h5') #모델저장2
-model.save_weights('./stock_pred/Stock_SSD2_weight.h5') #weight저장
+# model.save('./stock_pred/Stock_SSD_2_model2.h5') #모델저장2
+# model.save_weights('./stock_pred/Stock_SSD2_weight.h5') #weight저장
 # model = load_model('./stock_pred/k51_1_model1.h5')#모델로드
 # model.load_weights('./stock_pred/k52_1_weight.h5') #weight로드
 
@@ -123,9 +124,7 @@ print('R2: ', R2)
 
 print('주가 :', x_predict)
 
-
 # # 시각화
-# import matplotlib.pyplot as plt
 # plt.rc('font', family='Malgun Gothic')
 # plt.figure(figsize=(10,6))
 # plt.subplot(2,1,1)

@@ -3,24 +3,31 @@ import numpy as np
 import pandas as pd
 
 df = pd.read_csv("../data/csv/삼성전자.csv", index_col=0, header=0, encoding='CP949')
-df1 = pd.read_csv("../data/csv/삼성전자2.csv", index_col=0, header=0, encoding='CP949')
+df1 = pd.read_csv("../data/csv/삼성전자0115.csv", index_col=0, header=0, encoding='CP949')
 # print(df.shape)
 # print(df.info())
 # print(df.columns)
-print(df1.shape)
-print(df1.info())
-print(df1.columns)
+print(df.shape)
+print(df.info())
+print(df.columns)
 
 #df1 전처리
 df = df.drop(df.index[0])
 print(df.shape)
-print(df1.shape)
+print(df.shape)
 
 df1 = df1.drop(['전일비','Unnamed: 6'], axis=1)
 print(df1)
-df1 = df1.iloc[[0,1]]
+df1 = df1.iloc[[0,1,2]]
 df = pd.concat([df1, df])
-print(df) #[2401 rows x 14 columns]
+# print(df) #[2401 rows x 14 columns]
+# 80 rows x 14 columns]
+#              시가       고가       저가       종가   등락률         거래량     금액(백만)   신용비     개인           기관      외인(수량)         외국계        프로그램    외인비일자
+# 2021-01-15   89,800   91,800   88,000   88,000 -1.90  33,117,980  2,947,682  0.00   7,510,662   -4,949,552           0    -261,904  -3,522,801  55.57
+# 2021-01-14   88,700   90,000   88,700   89,700  0.00  26,393,970  2,356,662  0.10   3,239,160   -5,859,292   2,922,186   2,193,784  -1,091,335  55.57
+# 2021-01-13   89,800   91,200   89,100   89,700 -0.99  36,068,848  3,244,067  0.10   4,600,807   -1,794,818  -1,898,330  -2,774,590  -2,190,774  55.52
+# 2021-01-12   90,300   91,400   87,800   90,600 -0.44  48,682,416  4,362,546  0.08   8,233,252   -5,885,518  -2,125,136  -2,093,652  -4,498,684  55.56
+# 2021-01-11   90,000   96,800   89,500   91,000  2.48  90,306,177  8,379,238  0.09  18,882,865  -13,590,286  -5,439,782  -4,979,740  -6,795,684  55
 
 #Index(['시가', '고가', '저가', '종가', '등락률', '거래량', '금액(백만)', '신용비', '개인', '기관
 # ','외인(수량)', '외국계', '프로그램', '외인비'],dtype='object')
@@ -53,40 +60,40 @@ df_sorted = df.sort_values(by='일자', ascending=True)
 print(df_sorted)
 
 # 2. 예측하고자 하는 값을 뒤에 추가
-y = df_sorted.iloc[:,3:4]
-del df_sorted['종가']
-df_sorted['종가'] = y
-print(df_sorted)
-print(df_sorted.columns)
-
+y = df_sorted.iloc[:,0]
+del df_sorted['시가']
+df_sorted['시가'] = y
+# print(df_sorted)
+# print(df_sorted.columns)
 
 # 3. 결측값이 들어있는 행 전체 제거
-print (df_sorted.isnull().sum()) #거래량, 금액 각 3 18.04.30 ~ 18.05.02 3일
 df_dop_null = df_sorted.dropna(axis=0)
-print(df_dop_null.shape) #(2397, 14)
-# print(df_dop_null)
-
-# 4. 가격 조정(시가, 고가, 저가, 종가, 거래량, 금액, 개인, 기관, 외인, 외국계, 프로그램)
-# 시가
-a = df_dop_null.iloc[:1735,0] / 50
-b = df_dop_null.iloc[1735:,0]
-df_dop_null['시가'] = pd.concat([a,b])
-print(df_dop_null['시가'])
-print(df_dop_null['시가'].shape)
+print (df_dop_null.isnull().sum())
+print(df_sorted.columns) 
+#          0       1       2       3          4       5           6           7      8     9             10        11         12       13
+# Index(['고가', '저가', '종가', '등락률', '거래량', '금액(백만)', '신용비', '개인', '기관', '외인(수량)', '외국계', '프로그램', '외인비', '시가'],
 
 # 고가
-a = df_dop_null.iloc[:1735,1] / 50
-b = df_dop_null.iloc[1735:,1] 
+a = df_dop_null.iloc[:1735,0] / 50
+b = df_dop_null.iloc[1735:,0] 
 df_dop_null['고가'] = pd.concat([a,b])
 print(df_dop_null['고가'])
 print(df_dop_null['고가'].shape)
 
 # 저가
-a = df_dop_null.iloc[:1735,2] / 50
-b = df_dop_null.iloc[1735:,2]
+a = df_dop_null.iloc[:1735,1] / 50
+b = df_dop_null.iloc[1735:,1]
 df_dop_null['저가'] = pd.concat([a,b])
 print(df_dop_null['저가'])
 print(df_dop_null['저가'].shape)
+
+# 종가
+a = df_dop_null.iloc[:1735,2] / 50
+b = df_dop_null.iloc[1735:,2]
+df_dop_null['종가'] = pd.concat([a,b])
+print(df_dop_null['종가'])
+print(df_dop_null['종가'].shape)
+print(df_dop_null)
 
 # 거래량
 a = df_dop_null.iloc[:1735,4] *50
@@ -94,13 +101,6 @@ b = df_dop_null.iloc[1735:,4]
 df_dop_null['거래량'] = pd.concat([a,b])
 print(df_dop_null['거래량'])
 print(df_dop_null['거래량'].shape)
-
-# 금액(백만)
-a = df_dop_null.iloc[:1735,5] *50
-b = df_dop_null.iloc[1735:,5]
-df_dop_null['금액(백만)'] = pd.concat([a,b])
-print(df_dop_null['금액(백만)'])
-print(df_dop_null['금액(백만)'].shape)
 
 # 개인
 a = df_dop_null.iloc[:1735,7] *50
@@ -137,53 +137,51 @@ df_dop_null['프로그램'] = pd.concat([a,b])
 print(df_dop_null['프로그램'])
 print(df_dop_null['프로그램'].shape)
 
-# 종가
+# 시가
 a = df_dop_null.iloc[:1735,13] / 50
 b = df_dop_null.iloc[1735:,13]
-df_dop_null['종가'] = pd.concat([a,b])
-print(df_dop_null['종가'])
-print(df_dop_null['종가'].shape)
-print(df_dop_null)
+df_dop_null['시가'] = pd.concat([a,b])
+print(df_dop_null['시가'])
+print(df_dop_null['시가'].shape)
 
-#5. 상관계수 확인
+# 5. 상관계수 확인
+print(df.corr())
+import matplotlib.pyplot as plt
+from matplotlib import font_manager, rc
+import seaborn as sns
+font_path = "C:/STUDY/font/NanumBarunpenB.ttf"
+font_name = font_manager.FontProperties(fname=font_path).get_name()
+plt.rc('font', family=font_name)
+sns.set(font_scale=1)#폰트크기
+sns.heatmap(data=df_dop_null.corr(), square=True, annot=True, cbar=True)
+plt.show()
 
-# print(df.corr())
-# import matplotlib.pyplot as plt
-# import seaborn as sns
-# plt.rc('font', family='Malgun Gothic')
-# sns.set(font_scale=1.2)#폰트크기
-# sns.heatmap(data=df_dop_null.corr(), square=True, annot=True, cbar=True)
-# plt.show()
-
-#6. 열제거(분석하고자 하는것 남기기)
-#시가, 고가, 저가, 종가, 거래량, 금액(백만), 개인, 기관, 외인, 외국계, 프로그램
-# (['시가', '고가', '저가', '종가', '등락률', '거래량', '금액(백만)', '신용비', '개인', '기관','외인(수량)', '외국계', '프로그램', '외인비'],dtype='object')
-
+# 6. 열제거(분석하고자 하는것 남기기)
+#          0       1       2       3          4       5           6           7      8     9             10        11         12       13
+# Index(['고가', '저가', '종가', '등락률', '거래량', '금액(백만)', '신용비', '개인', '기관', '외인(수량)', '외국계', '프로그램', '외인비', '시가'],
 del df_dop_null['등락률']
+del df_dop_null['거래량']
 del df_dop_null['신용비']
+del df_dop_null['개인']
+del df_dop_null['기관']
+del df_dop_null['외인(수량)']
+del df_dop_null['외국계']
 del df_dop_null['프로그램']
-
 
 print(df_dop_null)
 
 #7. 최종 데이터 확인
 print(df_dop_null.shape) #[2397 rows x 10 columns]
 print(df_dop_null.info())
-# Data columns (total 11 columns):
+
 #  #   Column  Non-Null Count  Dtype
 # ---  ------  --------------  -----
-#  0   시가      2398 non-null   float64
-#  1   고가      2398 non-null   float64
-#  2   저가      2398 non-null   float64
-#  3   거래량     2398 non-null   float64
-#  4   금액(백만)  2398 non-null   float64
-#  5   개인      2398 non-null   int64
-#  6   기관      2398 non-null   int64
-#  7   외인(수량)  2398 non-null   int64
-#  8   외국계     2398 non-null   int64
-#  9   외인비     2398 non-null   float64
-#  10  종가      2398 non-null   float64
-# dtypes: float64(7), int64(4)
+#  0   고가      2399 non-null   float64
+#  1   저가      2399 non-null   float64
+#  2   종가      2399 non-null   float64
+#  3   금액(백만)  2399 non-null   float64
+#  4   외인비     2399 non-null   float64
+#  5   시가      2399 non-null   float64
 
 #numpy 저장
 SSD_data = df_dop_null.to_numpy()

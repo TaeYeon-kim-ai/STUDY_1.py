@@ -20,6 +20,9 @@ df1 = df1.drop(['전일비','Unnamed: 6'], axis=1)
 print(df1)
 df1 = df1.iloc[[0,1,2]]
 df = pd.concat([df1, df])
+# print(df1)
+# print(df.head())
+
 # print(df) #[2401 rows x 14 columns]
 # 80 rows x 14 columns]
 #              시가       고가       저가       종가   등락률         거래량     금액(백만)   신용비     개인           기관      외인(수량)         외국계        프로그램    외인비일자
@@ -70,6 +73,7 @@ df_sorted['시가'] = y
 df_dop_null = df_sorted.dropna(axis=0)
 print (df_dop_null.isnull().sum())
 print(df_sorted.columns) 
+print(df_sorted.tail())
 #          0       1       2       3          4       5           6           7      8     9             10        11         12       13
 # Index(['고가', '저가', '종가', '등락률', '거래량', '금액(백만)', '신용비', '개인', '기관', '외인(수량)', '외국계', '프로그램', '외인비', '시가'],
 
@@ -144,48 +148,66 @@ df_dop_null['시가'] = pd.concat([a,b])
 print(df_dop_null['시가'])
 print(df_dop_null['시가'].shape)
 
-# 5. 상관계수 확인
-print(df.corr())
-import matplotlib.pyplot as plt
-from matplotlib import font_manager, rc
-import seaborn as sns
-font_path = "C:/STUDY/font/NanumBarunpenB.ttf"
-font_name = font_manager.FontProperties(fname=font_path).get_name()
-plt.rc('font', family=font_name)
-sns.set(font_scale=1)#폰트크기
-sns.heatmap(data=df_dop_null.corr(), square=True, annot=True, cbar=True)
-plt.show()
+# # 5. 상관계수 확인
+# print(df_dop_null.corr())
+# import matplotlib.pyplot as plt
+# from matplotlib import font_manager, rc
+# import seaborn as sns
+# font_path = "C:/STUDY/font/NanumBarunpenB.ttf"
+# font_name = font_manager.FontProperties(fname=font_path).get_name()
+# plt.rc('font', family=font_name)
+# sns.set(font_scale=1)#폰트크기
+# sns.heatmap(data=df_dop_null.corr(), square=True, annot=True, cbar=True)
+# plt.show()
 
 # 6. 열제거(분석하고자 하는것 남기기)
 #          0       1       2       3          4       5           6           7      8     9             10        11         12       13
 # Index(['고가', '저가', '종가', '등락률', '거래량', '금액(백만)', '신용비', '개인', '기관', '외인(수량)', '외국계', '프로그램', '외인비', '시가'],
 del df_dop_null['등락률']
-del df_dop_null['거래량']
 del df_dop_null['신용비']
-del df_dop_null['개인']
 del df_dop_null['기관']
 del df_dop_null['외인(수량)']
 del df_dop_null['외국계']
 del df_dop_null['프로그램']
+del df_dop_null['외인비']
 
 print(df_dop_null)
 
 #7. 최종 데이터 확인
 print(df_dop_null.shape) #[2397 rows x 10 columns]
 print(df_dop_null.info())
-
+print(df_dop_null) #[2397 rows x 10 columns]
+# Data columns (total 7 columns):
 #  #   Column  Non-Null Count  Dtype
 # ---  ------  --------------  -----
-#  0   고가      2399 non-null   float64
-#  1   저가      2399 non-null   float64
-#  2   종가      2399 non-null   float64
-#  3   금액(백만)  2399 non-null   float64
-#  4   외인비     2399 non-null   float64
-#  5   시가      2399 non-null   float64
+#  0   고가      1088 non-null   float64
+#  1   저가      1088 non-null   float64
+#  2   종가      1088 non-null   float64
+#  3   거래량     1088 non-null   float64
+#  4   금액(백만)  1088 non-null   float64
+#  5   개인      1088 non-null   int64
+#  6   시가      1088 non-null   float64
+
+#데이터 추출
+df_dop_null = df_dop_null.iloc[1314:]
+print(df_dop_null.tail()) #[2397 rows x 10 columns]
+print(df_dop_null.shape) #[2397 rows x 10 columns]
+print(df_dop_null.head()) #[2397 rows x 10 columns]
 
 #numpy 저장
 SSD_data = df_dop_null.to_numpy()
 print(SSD_data)
 print(type(SSD_data)) # <class 'numpy.ndarray'>
-print(SSD_data.shape) # (2398, 10)
+print(SSD_data.shape) # (1085, 7)
 np.save('./stock_pred/SSD_prepro_data3.npy', arr=SSD_data)
+
+# 2016-08-09  31580.0  31140.0  31340.0   9023200.0  283111.0  352300  31480.0
+# 2016-08-10  31400.0  30680.0  30820.0  12340350.0  381460.0  926550  31340.0
+# 2016-08-11  31180.0  30520.0  31180.0  10533600.0  325317.0  143050  30820.0
+# 2016-08-12  31400.0  30880.0  30900.0  10474850.0  325885.0   62850  31180.0
+# 2016-08-16  31520.0  30900.0  31360.0  10843100.0  339489.0  699050  30900.0
+
+#제거
+# 2018-05-03
+# 2018-05-02
+# 2018-04-30

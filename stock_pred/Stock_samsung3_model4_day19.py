@@ -46,10 +46,6 @@ x2_pred = dataset2[-1:,0:6,0:6]
 y = dataset[1:,0,-1] # OR [1:,-1:,0] 하루 건너 치, y=df[1:, -2:, 0]이틀치 from.주형
 print(x1.shape)
 print(y.shape)
-print(x2.shape)
-print(x1_pred)
-print(x2_pred)
-print(y)
 
 x1_train, x1_test, y_train, y_test = train_test_split(x1, y, train_size = 0.8, shuffle=True, random_state = 100)
 x1_train, x1_val, y_train, y_val = train_test_split(x1_train, y_train, train_size = 0.8, shuffle= True, random_state = 100)
@@ -137,12 +133,13 @@ print(x1_train.shape, x2_train.shape)#(692, 5, 5) (692, 5, 5)
 print(y_train.shape) #(692, 1)
 
 #3.컴파일, 훈련
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 modelpath = './stock_pred/MCP/Stock_SSD_14_{epoch:02d}-{val_loss:.4f}.hdf5'
 cp = ModelCheckpoint(filepath= modelpath, monitor= 'val_loss', save_best_only=True, mode = 'auto')
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=10, factor=0.5, verbose=1)
 early_stopping = EarlyStopping(monitor = 'loss', patience = 25, mode = 'auto') # #loss값이 가장낮을 때를 10번 지나갈 때 까지 기다렸다가 stop. mode는 min, max, auto조정가능
 model.compile(loss = 'mse', optimizer = 'adam', metrics = ['mae'])
-hist = model.fit([x1_train, x2_train], y_train, epochs = 1000, batch_size = 18, validation_data = ([x1_val, x2_val], y_val), verbose = 1 ,callbacks = [early_stopping]) #cp])
+hist = model.fit([x1_train, x2_train], y_train, epochs = 1000, batch_size = 18, validation_data = ([x1_val, x2_val], y_val), verbose = 1 ,callbacks = [early_stopping, cp, reduce_lr]) 
 
 model.save('./stock_pred/Stock_SSD_3_model2.h5') #모델저장2
 model.save_weights('./stock_pred/Stock_SSD3_weight.h5') #weight저장
@@ -192,8 +189,24 @@ plt.xlabel('epoch')
 plt.legend(loc = 'upper right')
 plt.show()
 
-
+#손대기 전..
 # loss :  333201.21875
 # mae :  424.3497619628906
 # 18일 시가 : [87843.32 87613.21]
 # 19일 시가 : [87613.21]
+
+#일반
+# loss :  753228.75
+# mae :  736.1385498046875
+# 18일 시가 : [91061.36 90785.85]
+# 19일 시가 : [90785.85]
+
+#reduce적용
+# loss :  371473.8125
+# mae :  452.0333557128906
+# 18일 시가 : [85729.6   86740.125]
+# 19일 시가 : [86740.125]
+# loss :  273666.46875
+# mae :  380.3132019042969
+# 18일 시가 : [88710.125 88823.33 ]
+# 19일 시가 : [88823.33]

@@ -15,7 +15,7 @@ x_train = pd.read_csv('./dacon/data/train/train.csv')
 def preprocess_data(data):
         temp = data.copy()                                                  #temp를 정의
         return temp.iloc[-48:,:]
-
+#==========================================
 df_test = []
 
 #test data병합
@@ -24,6 +24,7 @@ for i in range(81): # 갯수 지정
     temp = pd.read_csv(file_path)                                           #파일을 읽어드린 후  temp로 지정
     temp = preprocess_data(temp)                                            #temp파일 처리
     df_test.append(temp)                                                    #temp파일을 df_test에 추가함.
+#===========================================
 
 x_pred = pd.concat(df_test)                                                 #
 # Attach padding dummy time series
@@ -74,6 +75,7 @@ x_test = x_test.reshape(x_test.shape[0], x_test.shape[1]*x_test.shape[2]*x_test.
 y_train = y_train.reshape(y_train.shape[0], y_train.shape[1]*y_train.shape[2]*y_train.shape[3])
 y_test = y_test.reshape(y_test.shape[0], y_test.shape[1]*y_test.shape[2]*y_test.shape[3])
 # sub_test = sub_test.reshape(sub_test.shape[0], sub_test.shape[1]*sub_test.shape[2])
+
 
 #MinMaxScaler 1, 2, 3
 scaler1 = MinMaxScaler()

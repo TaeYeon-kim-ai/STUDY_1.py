@@ -54,7 +54,7 @@ df_train.iloc[-48:]
 
 from sklearn.model_selection import train_test_split
 X_train_1, X_valid_1, Y_train_1, Y_valid_1 = train_test_split(df_train.iloc[:, :-2], df_train.iloc[:, -2], test_size=0.3, random_state=0)
-X_train_2, X_valid_2, Y_train_2, Y_valid_2 = train_test_split(df_train.iloc[:, :-2], df_train.iloc[:, -1], test_size=0.3, random_state=0)
+X_train_2, X_valid_2, Y_train_2, Y_valid_2 = train_test_split(df_train.iloc[:, :-2], df_train.iloc[:, -1], test_size=0.3, random_state=0)1
 #Target1, Target2데이터를 분리하여 X_train의 테스트값 분리 / Y_train의 테스트값 분리 +1일 / +2일에 대한  Tqrget train, test값
 
 X_train_1.head()
@@ -93,7 +93,6 @@ def train_data(X_train, Y_train, X_valid, Y_valid, X_test):
     for q in quantiles:
         print(q)
         pred , model = LGBM(q, X_train, Y_train, X_valid, Y_valid, X_test)
-                    #LGBM모델 적용하여 훈련함
         LGBM_models.append(model)
         #LGBM_models 마지막줄에 추가함
         LGBM_actual_pred = pd.concat([LGBM_actual_pred,pred],axis=1)

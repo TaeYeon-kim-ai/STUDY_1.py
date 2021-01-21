@@ -1,3 +1,5 @@
+#데이터 중복검사 .duplicateds      .duplicateds.sum()
+
 #자르기 - 2일 골라내기 - 예측 /// 7일될때마다 2개씩 골라내기
 
 import numpy as np
@@ -7,6 +9,12 @@ from tensorflow.keras.layers import Dense, LSTM, Input, Dropout, Conv1D, MaxPool
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import matplotlib.pyplot as plt
 import seaborn as sns
+import tensorflow as tf
+import tensorflow.keras.backend as K 
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
+from tensorflow.keras.optimizers import Adam, Adadelta, Adamax, Adagrad
+from tensorflow.keras.optimizers import RMSprop, SGD, Nadam
 
 #0. 함수정의
 train = pd.read_csv('./dacon/data/train/train.csv')
@@ -33,8 +41,6 @@ def preprocess_data(data, is_train=True):
 
 df_train = preprocess_data(train)
 df_train.iloc[:48] # T1, T2추가된 df_train 0~48까지 자르기
-train.iloc[48:96] #기존 train 48~95까지 자르기
-train.iloc[48+48:96+48] #train data 96 ~ +48까지 잘라서 보기
 
 #============================================
 #test데이터 병합
@@ -47,61 +53,120 @@ for i in range(81):
     df_test.append(temp)
 
 x_pred = pd.concat(df_test)
-#test병합 끝.
 #============================================
 
 #1. 데이터
 print(df_train.shape) #(52464, 9)
 print(x_pred.shape) #(3888, 7)
+x_train = df_train
 
-from sklearn.model_selection import train_test_split
-x_train1, x_test1, y_train1, y_test1 = train_test_split(df_train.iloc[:, :-2], df_train.iloc[:, -2], train_size = 0.7, random_state = 0)
-x_train2, x_test2, y_train2, y_test2 = train_test_split(df_train.iloc[:, :-2], df_train.iloc[:, -1], train_size = 0.7, random_state = 0)
-x_train1, x_val1, y_train1, y_val1 = train_test_split(x_train1, y_train1, train_size = 0.7, random_state = 0)
-x_train2, x_val2, y_train2, y_val2 = train_test_split(x_train2, y_train2, train_size = 0.7, random_state = 0)
-#1.1 데이터 전처리
-print(x_train1.shape)#(25706, 7)
-print(x_train2.shape)#(25706, 7)
-print(x_test1.shape)#(15740, 7)
-print(x_test2.shape)#(15740, 7)
-print(x_val1.shape)#(11018, 7)
-print(x_val2.shape)#(11018, 7)
-'''
-#1.1데이터 전처리
+#numpy 변환
+x_train = preprocess_data(df_train) #뒤에 두개 제외 Y값
+x_train = df_train.to_numpy()
+x_pred = x_pred.to_numpy()
+
+#데이터 분할
+def split_xy(dataset, time_steps):
+    x, y1, y2 = [], [], []
+    for i in range(len(dataset)):
+        x_data_end = i + time_steps
+        if x_data_end > len(dataset) -1:
+            break
+        tmp_x = dataset[i:x_data_end, :-2]
+        tmp_y1 = dataset[x_data_end-1:x_data_end,-1]
+        tmp_y2 = dataset[x_data_end-1:x_data_end, -2]
+        x.append(tmp_x)
+        y1.append(tmp_y1)
+        y2.append(tmp_y2)
+    return np.array(x), np.array(y1), np.array(y2)
+
+x, y1, y2 = split_xy(x_train, 1)
+print(x.shape) 
+print(y1.shape) 
+print(y2.shape)
+
+#train_t_s
+x_train, x_test, y1_train, y1_test, y2_train, y2_test  = train_test_split(x, y1, y2, train_size = 0.7, shuffle=True, random_state = 0)
+x_train, x_val, y1_train, y1_val, y2_train, y2_val  = train_test_split(x_train, y1_train, y2_train, train_size = 0.7, shuffle=True, random_state = 0)
+
+print(x_train.shape) #(25706, 1, 7)
+print(x_test.shape) #(15739, 1, 7)
+print(x_val.shape) #(11018, 1, 7)
+
+x_train = x_train.reshape(x_train.shape[0], 7)
+x_test = x_test.reshape(x_test.shape[0], 7)
+x_val = x_val.reshape(x_val.shape[0], 7)
+
 #StandardScaler
-scaler1 = StandardScaler()
-scaler1.fit(x_train1)
-x_train1 = scaler1.transform(x_train1)
-x_test1 = scaler1.transform(x_test1)
-x_val1 = scaler1.transform(x_val1)
+scaler = StandardScaler()
+scaler.fit(x_train)
+x_train = scaler.transform(x_train)
+x_test = scaler.transform(x_test)
+x_val = scaler.transform(x_val)
 
-scaler2 = StandardScaler()
-scaler2.fit(x_train2)
-x_train2 = scaler1.transform(x_train2)
-x_test2 = scaler1.transform(x_test2)
-x_val2 = scaler1.transform(x_val2)
+x_train = x_train.reshape(x_train.shape[0], 1, 7)
+x_test = x_test.reshape(x_test.shape[0], 1, 7)
+x_val = x_val.reshape(x_val.shape[0], 1, 7)
 
-#1.2. 데이터 reshape
+#quantile_loss
+def quantile_loss(y_true, y_pred) : 
+    qs = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]  
+    q = tf.constant(np.array([qs]), dtype = tf.float32) #qs를 텐서플로의 (컨스턴트형식) 상수(바뀌지 않는값)형태로 바꾸겠다. tf 1.x
+                                                        #tf.constant 검색                
+    e = y_true = y_pred #y_true(실제값)에서 y_pred(예측값)
+    v = tf.maximum(q*e, (q-1)*e) 
+    return K.mean(v)
 
 #2. 모델링
-def Seq(q, x_train, y_train, x_valid, y_valid, x_pred): #q값 
-    
-    # (a) Modeling  
-    model = input1 = Input(shape()
-                         
-                         
-    model.fit(X_train, Y_train, eval_metric = ['quantile'], 
-          eval_set=[(X_valid, Y_valid)], early_stopping_rounds=300, verbose=500)
-
-    # (b) Predictions
-    pred = pd.Series(model.predict(X_test).round(2)) 
-                #시리즈를 주어진 소수 자릿수로 반올림함 .00
-    return pred, model
-
+def conv1d_model() :
+    inputs = Input(shape = (x_train.shape[1], x_train.shape[2]))
+    conv1d = Conv1D(256, 2, activation= 'relu', padding= 'SAME',input_shape = (x_train.shape[1], x_train.shape[2]))(inputs)
+    conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
+    conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
+    flt = Flatten()(conv1d)
+    dense1 = Dense(128, activation='relu')(flt)
+    dense1 = Dense(64, activation='relu')(dense1)
+    dense1 = Dense(64, activation='relu')(dense1)
+    dense1 = Dense(32, activation='relu')(dense1)
+    dense1 = Dense(16, activation='relu')(dense1)
+    outputs = Dense(1)(dense1)
+    model = Model(inputs = inputs, outputs = outputs)
 
 #3. 컴파일, 훈련
+#optimizer
 
+optimizer = Adam(lr = 0.1)
+# optimizer = Adam(lr = 0.01)
+# optimizer = Adam(lr = 0.001)
+# optimizer = Adam(lr = 0.0001)
+es = EarlyStopping(monitor = 'loss', patience = 5, mode = 'auto')
+lr = ReduceLROnPlateau(monitor= 'val_loss', patience = 10)
+ep = 100
+bs = 32
 
+x = []
+model = conv1d_model() 
+modelpath = './dacon/data/MCP/dacon_01_y1_{epoch:02d}-{val_loss:.4f}.hdf5'
+cp = ModelCheckpoint(modelpath,save_best_only=True,monitor = 'val_loss')
+model.compile(loss = quantile_loss, optimizer = 'adam', metrics = lambda y_true, y_pred: quantile_loss(i, y_true, y_pred))
+model.fit(x_train, y1_train, epochs = ep , batch_size = bs, validation_data= (x_val, y1_val), verbose = 1 ,callbacks = [es, cp, lr])
+pred = pd.DataFrame(model.predict(x_pred).round(2)) #dacon LGBM
+x.append(pred)
+df_tmp1 = pd.concat(x, axis= 1)
+np_tmp1 = df_tmp1.to_numpy()
+submission.loc[submission.id.str.contains("Day7"), "q_0.1":] = np_tmp1
 
+x = []
+model = conv1d_model() 
+modelpath = './dacon/data/MCP/dacon_01_y2_{epoch:02d}-{val_loss:.4f}.hdf5'
+cp = ModelCheckpoint(modelpath,save_best_only=True,monitor = 'val_loss')
+model.compile(loss = quantile_loss, optimizer = 'adam', metrics = lambda y_true, y_pred: quantile_loss(i, y_true, y_pred))
+model.fit(x_train, y2_train, epochs = ep , batch_size = bs, validation_data= (x_val, y2_val), verbose = 1 ,callbacks = [es, cp, lr])
+pred = pd.DataFrame(model.predict(x_pred).round(2)) #dacon LGBM
+x.append(pred)
+df_tmp2 = pd.concat(x, axis= 1)
+np_tmp2 = df_tmp1.to_numpy()
+submission.loc[submission.id.str.contains("Day8"), "q_0.1":] = np_tmp2
 
-'''
+#저장
+submission.to_csv('./dacon/data/submission_210121_2.csv', index=False)

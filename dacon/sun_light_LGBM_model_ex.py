@@ -108,7 +108,7 @@ models_1, results_1 = train_data(X_train_1, Y_train_1, X_valid_1, Y_valid_1, X_t
 results_1.sort_index()[:48] # Target1 = 7일째 예측값, models_1과 results_1값에 기록
 
 # Target2
-models_2, results_2 = train_data(X_train_2, Y_train_2, X_valid_2, Y_valid_2, X_test)
+models_2, results_2 = train_data(X_train2, Y_train2, X_valid2, Y_valid2, X_test)
 results_2.sort_index()[:48] 
 
 results_1.sort_index().iloc[:48]

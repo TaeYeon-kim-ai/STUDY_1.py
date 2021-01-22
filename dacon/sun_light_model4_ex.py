@@ -56,8 +56,8 @@ x_pred = pd.concat(df_test)
 #============================================
 
 #1. 데이터
-print(df_train.shape) #(52464, 9)
-print(x_pred.shape) #(3888, 7)
+# print(df_train.shape) #(52464, 9)
+# print(x_pred.shape) #(3888, 7)
 x_train = df_train
 
 #numpy 변환
@@ -81,9 +81,12 @@ def split_xy(dataset, time_steps):
     return np.array(x), np.array(y1), np.array(y2)
 
 x, y1, y2 = split_xy(x_train, 1)
-print(x.shape) 
-print(y1.shape) 
-print(y2.shape)
+print(x.shape) # (52463, 1, 7)
+print(y1.shape) #(52463, 1)
+print(y2.shape)# (52463, 1)
+x_pred = x_pred.reshape(x_pred.shape[0], 1, 7)
+print(x_pred.shape) #(3888, 7)
+
 
 #train_t_s
 x_train, x_test, y1_train, y1_test, y2_train, y2_test  = train_test_split(x, y1, y2, train_size = 0.7, shuffle=True, random_state = 0)
@@ -109,13 +112,19 @@ x_test = x_test.reshape(x_test.shape[0], 1, 7)
 x_val = x_val.reshape(x_val.shape[0], 1, 7)
 
 #quantile_loss
-def quantile_loss(y_true, y_pred) : 
-    qs = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]  
-    q = tf.constant(np.array([qs]), dtype = tf.float32) #qs를 텐서플로의 (컨스턴트형식) 상수(바뀌지 않는값)형태로 바꾸겠다. tf 1.x
-                                                        #tf.constant 검색                
-    e = y_true = y_pred #y_true(실제값)에서 y_pred(예측값)
-    v = tf.maximum(q*e, (q-1)*e) 
-    return K.mean(v)
+def quantile_loss(q, y_true, y_pred):
+    err = (y_true - y_pred)
+    return K.mean(K.maximum(q*err, (q-1)*err), axis=-1)
+
+quantiles = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+
+# def quantile_loss(y_true, y_pred) : 
+#     qs = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]  
+#     q = tf.constant(np.array([qs]), dtype = tf.float32) #qs를 텐서플로의 (컨스턴트형식) 상수(바뀌지 않는값)형태로 바꾸겠다. tf 1.x
+#                                                         #tf.constant 검색                
+#     e = y_true = y_pred #y_true(실제값)에서 y_pred(예측값)
+#     v = tf.maximum(q*e, (q-1)*e) 
+#     return K.mean(v)
 
 #2. 모델링
 def conv1d_model() :
@@ -131,42 +140,47 @@ def conv1d_model() :
     dense1 = Dense(16, activation='relu')(dense1)
     outputs = Dense(1)(dense1)
     model = Model(inputs = inputs, outputs = outputs)
+    return model
 
 #3. 컴파일, 훈련
 #optimizer
 
-optimizer = Adam(lr = 0.1)
-# optimizer = Adam(lr = 0.01)
+# optimizer = Adam(lr = 0.1)
+optimizer = Adam(lr = 0.01)
 # optimizer = Adam(lr = 0.001)
 # optimizer = Adam(lr = 0.0001)
 es = EarlyStopping(monitor = 'loss', patience = 5, mode = 'auto')
-lr = ReduceLROnPlateau(monitor= 'val_loss', patience = 10)
-ep = 100
+lr = ReduceLROnPlateau(monitor= 'val_loss', patience = 3, factor= 0.5)
+ep = 50
 bs = 32
 
 x = []
-model = conv1d_model() 
-modelpath = './dacon/data/MCP/dacon_01_y1_{epoch:02d}-{val_loss:.4f}.hdf5'
-cp = ModelCheckpoint(modelpath,save_best_only=True,monitor = 'val_loss')
-model.compile(loss = quantile_loss, optimizer = 'adam', metrics = lambda y_true, y_pred: quantile_loss(i, y_true, y_pred))
-model.fit(x_train, y1_train, epochs = ep , batch_size = bs, validation_data= (x_val, y1_val), verbose = 1 ,callbacks = [es, cp, lr])
-pred = pd.DataFrame(model.predict(x_pred).round(2)) #dacon LGBM
-x.append(pred)
+for i in quantiles:
+    model = conv1d_model() 
+    # modelpath = './dacon/data/MCP/dacon_01_y1_{epoch:02d}-{val_loss:.4f}.hdf5'
+    # cp = ModelCheckpoint(modelpath,save_best_only=True,monitor = 'val_loss')
+    model.compile(loss = [lambda y_true, y_pred: quantile_loss(i, y_true, y_pred)], optimizer = optimizer , metrics = [lambda y, y_pred: quantile_loss(i, y, y_pred)])
+    model.fit(x_train, y1_train, epochs = ep , batch_size = bs, validation_data= (x_val, y1_val), verbose = 1, callbacks = [es, lr]) 
+    pred = pd.DataFrame(model.predict(x_pred).round(2)) #dacon LGBM
+    x.append(pred)
 df_tmp1 = pd.concat(x, axis= 1)
+df_tmp1[df_tmp1<0] = 0
 np_tmp1 = df_tmp1.to_numpy()
 submission.loc[submission.id.str.contains("Day7"), "q_0.1":] = np_tmp1
 
 x = []
-model = conv1d_model() 
-modelpath = './dacon/data/MCP/dacon_01_y2_{epoch:02d}-{val_loss:.4f}.hdf5'
-cp = ModelCheckpoint(modelpath,save_best_only=True,monitor = 'val_loss')
-model.compile(loss = quantile_loss, optimizer = 'adam', metrics = lambda y_true, y_pred: quantile_loss(i, y_true, y_pred))
-model.fit(x_train, y2_train, epochs = ep , batch_size = bs, validation_data= (x_val, y2_val), verbose = 1 ,callbacks = [es, cp, lr])
-pred = pd.DataFrame(model.predict(x_pred).round(2)) #dacon LGBM
-x.append(pred)
+for i in quantiles:
+    model = conv1d_model() 
+    # modelpath = './dacon/data/MCP/dacon_01_y2_{epoch:02d}-{val_loss:.4f}.hdf5'
+    # cp = ModelCheckpoint(modelpath,save_best_only=True,monitor = 'val_loss')
+    model.compile(loss = [lambda y_true, y_pred: quantile_loss(i, y_true, y_pred)], optimizer = optimizer , metrics = [lambda y, y_pred: quantile_loss(i, y, y_pred)])
+    model.fit(x_train, y2_train, epochs = ep , batch_size = bs, validation_data= (x_val, y2_val), verbose = 1, callbacks = [es, lr]) 
+    pred = pd.DataFrame(model.predict(x_pred).round(2)) #dacon LGBM
+    x.append(pred)
 df_tmp2 = pd.concat(x, axis= 1)
-np_tmp2 = df_tmp1.to_numpy()
+df_tmp2[df_tmp2<0] = 0
+np_tmp2 = df_tmp2.to_numpy()
 submission.loc[submission.id.str.contains("Day8"), "q_0.1":] = np_tmp2
 
 #저장
-submission.to_csv('./dacon/data/submission_210121_2.csv', index=False)
+submission.to_csv('./dacon/data/submission_210121_4.csv', index=False)

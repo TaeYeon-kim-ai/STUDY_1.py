@@ -58,6 +58,7 @@ def split_xy(dataset, time_steps, y_column):
         x.append(tmp_x)
         y.append(tmp_y)
     return np.array(x), np.array(y)
+    
 
 x, y = split_xy(x_train, 7, 2)                      #x행 수와 y(비교행 수)
 print(x.shape)                                      #(1087, 7, 48, 9)

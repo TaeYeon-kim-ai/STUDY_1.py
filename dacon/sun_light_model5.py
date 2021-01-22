@@ -72,29 +72,35 @@ def split_xy(dataset, time_steps):
 
 x, y = split_xy(x_train, 1)
 
-# print(x.shape) #(52463, 1, 7)
-# print(y.shape) #(52463, 1, 2)
-# print(y_pred.shape) #(3888, 7)
-# print(y_pred) #
+print(x.shape) #(52463, 1, 7)
+print(y.shape) #(52463, 1, 2)
+print(x_pred.shape) #(3888, 7)
+print(x) 
+print(y)
+print(x_pred) 
+
 #      Hour  TARGET  DHI  DNI   WS     RH     T
 # 288     0     0.0    0    0  0.8  80.92  -2.8
 
 #============================================
-#train_sprit_t
-x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.8, shuffle = True, random_state = 0)
-x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, train_size = 0.8, shuffle = True, random_state = 0)
 
-#변환
+#train_sprit_t
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size = 0.8, shuffle = False, random_state = 0)
+x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, train_size = 0.8, shuffle = False, random_state = 0)
+
+# #변환
 x_train = x_train.reshape(x_train.shape[0], x_train.shape[1]*x_train.shape[2])
 x_test = x_test.reshape(x_test.shape[0], x_test.shape[1]*x_test.shape[2])
 x_val = x_val.reshape(x_val.shape[0], x_val.shape[1]*x_val.shape[2])
 
-print(x_train.shape)
-print(x_test.shape)
-print(x_val.shape)
+print(x_train.shape)#(33514, 7)
+print(x_test.shape)#(10474, 7)
+print(x_val.shape)#(8379, 7)
+print(y_train.shape)#(33514, 7)
+print(y_test.shape)#(10474, 7)
+print(y_val.shape)#(8379, 7)
 
-
-#shane
+# #shane
 scaler = StandardScaler()
 scaler.fit(x_train)
 x_train = scaler.transform(x_train)
@@ -109,25 +115,24 @@ y_train = y_train.reshape(y_train.shape[0], 2, 1)
 y_test = y_test.reshape(y_test.shape[0], 2, 1)
 y_val = y_val.reshape(y_val.shape[0], 2, 1)
 
-
-x_pred = x_pred.reshape(x_pred.shape[0], 7, 1)
-
-print(x_pred)
+# print(x_pred)
 
 #2. 모델링
 inputs = Input(shape = (x_train.shape[1], x_train.shape[2]))
-conv1d = Conv1D(256, 2, activation= 'relu', padding= 'SAME',input_shape = (x_train.shape[1], x_train.shape[2]))(inputs)
+conv1d = Conv1D(128, 2, activation= 'relu', padding= 'SAME',input_shape = (x_train.shape[1], x_train.shape[2]))(inputs)
+drop = Dropout(0.1)(conv1d)
+conv1d = Conv1D(256, 2, padding= 'SAME', activation='relu')(drop)
 conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
-conv1d = Conv1D(64, 2, padding= 'SAME', activation='relu')(conv1d)
 flt = Flatten()(conv1d)
-dense1 = Dense(128, activation='relu')(flt)
-dense1 = Dense(64, activation='relu')(dense1)
+dense1 = Dense(64, activation='relu')(flt)
 dense1 = Dense(64, activation='relu')(dense1)
 dense1 = Dense(32, activation='relu')(dense1)
 dense1 = Dense(16, activation='relu')(dense1)
-outputs = Dense(1)(dense1)
+dense1 = Dense(16, activation='relu')(dense1)
+dense1 = Dense(8, activation='relu')(dense1)
+outputs = Dense(2)(dense1)
 model = Model(inputs = inputs, outputs = outputs)
-
+model.summary()
 
 #3. 컴파일, 훈련
 #loss 함수
@@ -139,20 +144,21 @@ q = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
 
 es = EarlyStopping(monitor = 'loss', patience = 5, mode = 'auto')
 lr = ReduceLROnPlateau(monitor= 'val_loss', patience = 3, factor= 0.5)
-optimizer = Adam(lr = 0.01)
+optimizer = Adam(lr = 0.001)
 
 for j in q:
     # modelpath = './dacon/data/MCP/dacon_01_y1_{epoch:02d}-{val_loss:.4f}.hdf5'
     # cp = ModelCheckpoint(modelpath,save_best_only=True,monitor = 'val_loss')
-    model.compile(loss = [lambda y_true, y_pred: quantile_loss(i, y_true, y_pred)], optimizer = optimizer , metrics = ['mae'])
-    model.fit(x_train, y_train, epochs = 10 , batch_size = 32, validation_data= (x_val, y_val), verbose = 1, callbacks = [es, lr]) 
+    model.compile(loss = [lambda y_true, y_pred: quantile_loss(j, y_true, y_pred)], optimizer = optimizer , metrics = ['mae'])
+    model.fit(x_train, y_train, epochs = 100 , batch_size = 32, validation_data= (x_val, y_val), verbose = 1, callbacks = [es, lr]) 
     #저장
-    temp = model.predict(x_pred)
+    temp = model.predict(x_pred).round(2)
+    print(temp, temp.shape)
     col = 'q_' + str(j)
     submission.loc[submission.id.str.contains("Day7"),col] = temp[:,0]
     submission.loc[submission.id.str.contains("Day8"),col] = temp[:,1]
 
-submission.to_csv('./dacon/data/submission_210121_5.csv', index=False)
+submission.to_csv('./dacon/data/submission_210121_7.csv', index=False)
 
 #평가, 예측
 loss, mae = model.evaluate(x_test, y_test ,batch_size=7)

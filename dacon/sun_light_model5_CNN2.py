@@ -41,16 +41,16 @@ def Add_features(data):
     return data
 
 train = Add_features(train)
-x_pred = Add_features(X_test)
+x_pred = Add_features(X_test)1
 
 print(train.shape)#(52560, 12)
 print(X_test.shape)#(27216, 12)
-'''
+
 #컬럼분류
 def preprocess_data(data, is_train=True):
     
     temp = data.copy()
-    temp = temp[['Hour', 'TARGET', 'DHI', 'DNI', 'WS', 'RH', 'T']] # 컬럼 추출
+    temp = temp[['Hour', 'TARGET', 'DHI', 'DNI', 'WS', 'RH', 'T', 'Td', 'T-Td', 'GHI']] # 컬럼 추출
 
     if is_train==True:          
     
@@ -62,14 +62,13 @@ def preprocess_data(data, is_train=True):
 
     elif is_train==False:
         
-        temp = temp[['Hour', 'TARGET', 'DHI', 'DNI', 'WS', 'RH', 'T']] 
+        temp = temp[['Hour', 'TARGET', 'DHI', 'DNI', 'WS', 'RH', 'T', 'Td', 'T-Td', 'GHI']] 
                                
         return temp.iloc[-48:, :] # if문 진행 -48~끝까지, 뒤에서 6일째 데이터만 남김 - if 데이터 +1~2일 예측 ex_ 1일 - 2, 3일 예측 / 2일 - 3,4일 예측
 
 df_train = preprocess_data(train)
 df_train.iloc[:48] # T1, T2추가된 df_train 0~48까지 자르기
 print(df_train)
-
 
 #numpy 변환
 x_train = preprocess_data(df_train) #뒤에 두개 제외 Y값
@@ -154,11 +153,11 @@ x_train, x_val, y2_train, y2_val = train_test_split(x_train, y2_train, train_siz
 # y2_test = scaler2.transform(y2_test)
 # y2_test = scaler2.transform(y2_test)
 
-x_train = x_train.reshape(x_train.shape[0], 1, 7)
-x_test = x_test.reshape(x_test.shape[0], 1, 7)
-x_val = x_val.reshape(x_val.shape[0], 1, 7)
+x_train = x_train.reshape(x_train.shape[0], 1, 10)
+x_test = x_test.reshape(x_test.shape[0], 1, 10)
+x_val = x_val.reshape(x_val.shape[0], 1, 10)
 
-x_pred = x_pred.reshape(x_pred.shape[0], 1, 7)
+x_pred = x_pred.reshape(x_pred.shape[0], 1, 10)
 
 # print(x_pred)
 
@@ -234,4 +233,3 @@ print('predict : ', pred)
 
 # loss :  0.9801944494247437
 # mae :  8.641593933105469
-'''

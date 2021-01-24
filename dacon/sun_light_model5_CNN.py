@@ -10,7 +10,7 @@ import tensorflow.keras.backend as K
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 from tensorflow.keras.optimizers import Adam, Adadelta, Adamax, Adagrad
-from tensorflow.keras.optimizers import RMSprop, SGD, Nadam0
+from tensorflow.keras.optimizers import RMSprop, SGD, Nadam
 
 #0. 함수정의
 train = pd.read_csv('./dacon/data/train/train.csv')
@@ -145,11 +145,11 @@ x_pred = x_pred.reshape(x_pred.shape[0], 1, 7)
 def co1_model() :
     inputs = Input(shape = (x_train.shape[1], x_train.shape[2]))
     conv1d = Conv1D(256, 2, activation= 'relu', padding= 'SAME',input_shape = (x_train.shape[1], x_train.shape[2]))(inputs)
-    conv1d = Conv1D(256, 2, padding= 'SAME', activation='relu')(conv1d)
+    conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
     conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
     conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
     flt = Flatten()(conv1d)
-    dense1 = Dense(128, activation='relu')(flt)
+    dense1 = Dense(128, activation='relu')(conv1d)
     dense1 = Dense(128, activation='relu')(dense1)
     dense1 = Dense(64, activation='relu')(dense1)
     dense1 = Dense(32, activation='relu')(dense1)
@@ -168,6 +168,8 @@ def quantile_loss(q, y_true, y_pred):
 
 q = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]   
 
+ep = 1
+bts = 32
 es = EarlyStopping(monitor = 'loss', patience = 7, mode = 'auto')
 lr = ReduceLROnPlateau(monitor= 'val_loss', patience = 3, factor= 0.3,  verbose = 1)
 optimizer = Adam(lr = 0.01)
@@ -178,7 +180,7 @@ for j in q:
     # modelpath = './dacon/data/MCP/dacon_01_y1_{epoch:02d}-{val_loss:.4f}.hdf5'
     # cp = ModelCheckpoint(modelpath,save_best_only=True,monitor = 'val_loss')
     model.compile(loss = [lambda y_true, y_pred: quantile_loss(j, y_true, y_pred)], optimizer = optimizer , metrics = ['mae'])
-    model.fit(x_train, y1_train, epochs = 100 , batch_size = 32, validation_data= (x_val, y1_val), verbose = 1, callbacks = [es, lr]) 
+    model.fit(x_train, y1_train, epochs = ep , batch_size = bts, validation_data= (x_val, y1_val), verbose = 1, callbacks = [es, lr]) 
     #저장
     temp = model.predict(x_pred).round(2)
     temp[temp<0] = 0
@@ -193,7 +195,7 @@ for j in q:
     # modelpath = './dacon/data/MCP/dacon_01_y1_{epoch:02d}-{val_loss:.4f}.hdf5'
     # cp = ModelCheckpoint(modelpath,save_best_only=True,monitor = 'val_loss')
     model.compile(loss = [lambda y_true, y_pred: quantile_loss(j, y_true, y_pred)], optimizer = optimizer , metrics = ['mae'])
-    model.fit(x_train, y2_train, epochs = 10 , batch_size = 64, validation_data= (x_val, y2_val), verbose = 1, callbacks = [es, lr]) 
+    model.fit(x_train, y2_train, epochs = ep , batch_size = bts, validation_data= (x_val, y2_val), verbose = 1, callbacks = [es, lr]) 
     #저장
     temp = model.predict(x_pred).round(2)
     temp[temp<0] = 0

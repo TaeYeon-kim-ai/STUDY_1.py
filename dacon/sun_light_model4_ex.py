@@ -130,10 +130,13 @@ quantiles = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
 def conv1d_model() :
     inputs = Input(shape = (x_train.shape[1], x_train.shape[2]))
     conv1d = Conv1D(256, 2, activation= 'relu', padding= 'SAME',input_shape = (x_train.shape[1], x_train.shape[2]))(inputs)
-    conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
-    conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
+    drop = Dropout(0.1)(conv1d)
+    conv1d = Conv1D(256, 2, padding= 'SAME', activation='relu')(drop)
+    conv1d = Conv1D(104, 2, padding= 'SAME', activation='relu')(conv1d)
+    conv1d = Conv1D(88, 2, padding= 'SAME', activation='relu')(conv1d)
     flt = Flatten()(conv1d)
-    dense1 = Dense(128, activation='relu')(flt)
+    dense1 = Dense(72, activation='relu')(flt)
+    dense1 = Dense(64, activation='relu')(dense1)
     dense1 = Dense(64, activation='relu')(dense1)
     dense1 = Dense(64, activation='relu')(dense1)
     dense1 = Dense(32, activation='relu')(dense1)
@@ -149,9 +152,9 @@ def conv1d_model() :
 optimizer = Adam(lr = 0.01)
 # optimizer = Adam(lr = 0.001)
 # optimizer = Adam(lr = 0.0001)
-es = EarlyStopping(monitor = 'loss', patience = 5, mode = 'auto')
+es = EarlyStopping(monitor = 'loss', patience = 10, mode = 'auto')
 lr = ReduceLROnPlateau(monitor= 'val_loss', patience = 3, factor= 0.5)
-ep = 50
+ep = 100
 bs = 32
 
 x = []
@@ -183,4 +186,4 @@ np_tmp2 = df_tmp2.to_numpy()
 submission.loc[submission.id.str.contains("Day8"), "q_0.1":] = np_tmp2
 
 #저장
-submission.to_csv('./dacon/data/submission_210121_4.csv', index=False)
+submission.to_csv('./dacon/data/submission_210125_1.csv', index=False)

@@ -145,7 +145,8 @@ x_pred = x_pred.reshape(x_pred.shape[0], 1, 7)
 def co1_model() :
     inputs = Input(shape = (x_train.shape[1], x_train.shape[2]))
     conv1d = Conv1D(256, 2, activation= 'relu', padding= 'SAME',input_shape = (x_train.shape[1], x_train.shape[2]))(inputs)
-    conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
+    drop = Dropout(0.1)(conv1d)
+    conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(drop)
     conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
     conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
     flt = Flatten()(conv1d)
@@ -168,11 +169,11 @@ def quantile_loss(q, y_true, y_pred):
 
 q = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]   
 
-ep = 1
-bts = 32
-es = EarlyStopping(monitor = 'loss', patience = 7, mode = 'auto')
+ep = 1000
+bts = 64
+es = EarlyStopping(monitor = 'loss', patience = 15, mode = 'auto')
 lr = ReduceLROnPlateau(monitor= 'val_loss', patience = 3, factor= 0.3,  verbose = 1)
-optimizer = Adam(lr = 0.01)
+optimizer = Adam(lr = 0.001)
 
 x = []
 for j in q:
@@ -206,12 +207,10 @@ for j in q:
 submission.to_csv('./dacon/data/submission_210121_8.csv', index=False)
 
 #평가, 예측
-loss, mae = model.evaluate(x_test, [y1_test, y2_test ],batch_size=7)
+loss, mae = model.evaluate(x_test, [y1_test, y2_test],batch_size=7)
 y_predict = model.predict(x_test)
-pred = pd.DataFrame(model.predict(x_pred).round(2)) #dacon LGBM
 print('loss : ', loss)
 print('mae : ', mae)
-print('predict : ', pred)
 
 # loss :  0.9801944494247437
 # mae :  8.641593933105469

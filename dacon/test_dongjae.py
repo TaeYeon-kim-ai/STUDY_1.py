@@ -10,11 +10,11 @@ import tensorflow.keras.backend as K
 # df_3.insert(0,'id',df_2)
 # df3.to_csv('../data/csv/0122_timeseries_scale10.csv', index = False)
 
-x = []
-for i in range(1,2):
-    df = pd.read_csv(f'C:\STUDY\dacon\data\submission_{i}.csv', index_col=0, header=0)
-    data = df.to_numpy()
-    x.append(data)
+x = [] #x에 첨부
+for i in range(1,2): # i  1~2까지 소스 가져오기
+    df = pd.read_csv(f'C:\STUDY\dacon\data\submission_{i}.csv', index_col=0, header=0) # 데이터 프레임 가져오기
+    data = df.to_numpy() # df를  numpy로 전환
+    x.append(data) 
 
 x = np.array(x)
 
@@ -29,3 +29,5 @@ for i in range(7776):
         
 y = pd.DataFrame(df, index = None, columns = None)
 y.to_csv('C:\STUDY\dacon\data\sample_submission_check3.csv')  
+
+

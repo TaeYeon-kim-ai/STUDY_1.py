@@ -29,5 +29,3 @@ for i in range(7776):
         
 y = pd.DataFrame(df, index = None, columns = None)
 y.to_csv('C:\STUDY\dacon\data\sample_submission_check3.csv')  
-
-

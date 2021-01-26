@@ -21,12 +21,18 @@ def Add_features(data):
     data['cos'] = np.cos(np.pi/2 - np.abs(data['Hour']%12 - 6)/6*np.pi/2)
     data.insert(1,'GHI',data['DNI']*data['cos']+data['DHI'])
     data.drop(['cos'], axis= 1, inplace = True)
+    c = 243.12
+    b = 17.62
+    gamma = (b * (data['T']) / (c + (data['T']))) + np.log(data['RH'] / 100)
+    dp = ( c * gamma) / (b - gamma)
+    data.insert(1,'Td',dp)
+    data.insert(1,'T-Td',data['T']-data['Td'])
     return data
 
 def preprocess_data(data, is_train=True):
-    data = Add_features(data) #GHI추가
+    data = Add_features(data) #GHI추가 : train, pred
     temp = data.copy()
-    temp = temp[['Hour', 'TARGET', 'GHI', 'DHI', 'DNI', 'WS', 'RH', 'T']] # 컬럼 추출
+    temp = temp[['Hour','GHI', 'DHI', 'DNI', 'RH', 'T','TARGET']] # 컬럼 추출
 
     if is_train==True:          
     
@@ -38,7 +44,7 @@ def preprocess_data(data, is_train=True):
 
     elif is_train==False:
         
-        temp = temp[['Hour', 'TARGET', 'GHI', 'DHI', 'DNI', 'WS', 'RH', 'T']] # 컬럼 추출
+        temp = temp[['Hour','GHI', 'DHI', 'DNI', 'RH', 'T','TARGET']] # 컬럼 추출
                                
         return temp.iloc[-48:, :] # if문 진행 -48~끝까지, 뒤에서 6일째 데이터만 남김 - if 데이터 +1~2일 예측 ex_ 1일 - 2, 3일 예측 / 2일 - 3,4일 예측
 
@@ -64,16 +70,11 @@ print(df_train.shape) #(52464, 10)
 print(x_pred.shape) #(3888, 8)
 #============================================
 
-# #standar
-# scaler = MinMaxScaler()
-# scaler.fit(x_train[:,:-2])
-# x_train[:,:-2] = scaler.transform(x_train[:,:-2])
-# x_pred = scaler.transform(x_pred)
-
 scaler = StandardScaler() 
 scaler.fit(x_train[:,:-2])
 x_train[:,:-2] = scaler.transform(x_train[:,:-2])
 x_pred = scaler.transform(x_pred)
+
 
 #데이터 분할
 def split_xy(dataset, time_steps):
@@ -103,10 +104,12 @@ def split_x(data,timestep):
     return(np.array(x))
 
 x_pred = split_x(x_pred,1)
-print(x.shape) #(52463, 1, 7)
-print(y1.shape) #(52367, 1)
-print(y2.shape) #(52367, 1)
-print(x_pred.shape) #(3888, 1, 7)
+# print(x.shape) #(52463, 1, 7)
+# print(y1.shape) #(52463, 1)
+# print(y2.shape) #(52463, 1)
+# print(x_pred.shape) #(3888, 1, 7)
+
+# x = x.reshape = 
 
 #      Hour  TARGET  DHI  DNI   WS     RH     T
 # 288     0     0.0    0    0  0.8  80.92  -2.8
@@ -114,22 +117,25 @@ print(x_pred.shape) #(3888, 1, 7)
 #============================================
 
 #train_sprit_t
-x_train, x_test, y1_train, y1_test = train_test_split(x, y1, train_size = 0.7, shuffle = True, random_state = 0)
-x_train, x_val, y1_train, y1_val = train_test_split(x_train, y1_train, train_size = 0.7, shuffle = True, random_state = 0)
-x_train, x_test, y2_train, y2_test = train_test_split(x, y2, train_size = 0.7, shuffle = True, random_state = 0)
-x_train, x_val, y2_train, y2_val = train_test_split(x_train, y2_train, train_size = 0.7, shuffle = True, random_state = 0)
+x_train, x_test, y1_train, y1_test = train_test_split(x, y1, train_size = 0.8, shuffle = True, random_state = 0)
+x_train, x_val, y1_train, y1_val = train_test_split(x_train, y1_train, train_size = 0.8, shuffle = True, random_state = 0)
+x_train, x_test, y2_train, y2_test = train_test_split(x, y2, train_size = 0.8, shuffle = True, random_state = 0)
+x_train, x_val, y2_train, y2_val = train_test_split(x_train, y2_train, train_size = 0.8, shuffle = True, random_state = 0)
 
 
 #2. 모델링
 def co1_model() :
     inputs = Input(shape = (x_train.shape[1], x_train.shape[2]))
-    conv1d = Conv1D(256, 2, activation= 'relu', padding= 'SAME',input_shape = (x_train.shape[1], x_train.shape[2]))(inputs)
-    conv1d = Conv1D(512, 2, padding= 'SAME', activation='relu')(conv1d)
-    conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
-    flt = Flatten()(conv1d)
-    dense1 = Dense(128, activation='relu')(flt)
+    dense1 = Dense(128, activation= 'relu')(inputs)
+    dense1 = Dense(92, activation= 'relu')(dense1)
+    drop = Dropout(0.01)(dense1)
+    dense1 = Dense(72, activation= 'relu')(drop)
+    dense1 = Dense(68, activation= 'relu')(dense1)
+    dense1 = Dense(64, activation= 'relu')(dense1)
     dense1 = Dense(64, activation='relu')(dense1)
     dense1 = Dense(32, activation='relu')(dense1)
+    dense1 = Dense(16, activation='relu')(dense1)
+    dense1 = Dense(8, activation='relu')(dense1)
     outputs = Dense(1)(dense1)
     model = Model(inputs = inputs, outputs = outputs)
     model.summary()
@@ -143,9 +149,9 @@ def quantile_loss(q, y_true, y_pred):
 
 q = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]   
 
-ep = 20
+ep = 14
 bts = 64
-es = EarlyStopping(monitor = 'loss', patience = 15, mode = 'auto')
+es = EarlyStopping(monitor = 'loss', patience = 5, mode = 'auto')
 lr = ReduceLROnPlateau(monitor= 'val_loss', patience = 3, factor= 0.3,  verbose = 1)
 optimizer = Adam(lr = 0.001)
 
@@ -194,3 +200,6 @@ print('mae : ', mae)
 #ep 32 / bts 32
 # loss :  1.355821132659912
 # mae :  8.446158409118652
+
+# loss :  0.8581345677375793
+# mae :  6.898976802825928

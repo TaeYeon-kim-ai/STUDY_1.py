@@ -21,6 +21,12 @@ def Add_features(data):
     data['cos'] = np.cos(np.pi/2 - np.abs(data['Hour']%12 - 6)/6*np.pi/2)
     data.insert(1,'GHI',data['DNI']*data['cos']+data['DHI'])
     data.drop(['cos'], axis= 1, inplace = True)
+    c = 243.12
+    b = 17.62
+    gamma = (b * (data['T']) / (c + (data['T']))) + np.log(data['RH'] / 100)
+    dp = ( c * gamma) / (b - gamma)
+    data.insert(1,'Td',dp)
+    data.insert(1,'T-Td',data['T']-data['Td'])
     return data
 
 def preprocess_data(data, is_train=True):
@@ -64,7 +70,7 @@ print(df_train.shape) #(52464, 10)
 print(x_pred.shape) #(3888, 8)
 #============================================
 
-# #standar
+# #MinMax
 # scaler = MinMaxScaler()
 # scaler.fit(x_train[:,:-2])
 # x_train[:,:-2] = scaler.transform(x_train[:,:-2])
@@ -124,12 +130,13 @@ x_train, x_val, y2_train, y2_val = train_test_split(x_train, y2_train, train_siz
 def co1_model() :
     inputs = Input(shape = (x_train.shape[1], x_train.shape[2]))
     conv1d = Conv1D(256, 2, activation= 'relu', padding= 'SAME',input_shape = (x_train.shape[1], x_train.shape[2]))(inputs)
-    conv1d = Conv1D(512, 2, padding= 'SAME', activation='relu')(conv1d)
+    conv1d = Conv1D(256, 2, padding= 'SAME', activation='relu')(conv1d)
+    conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
     conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
     flt = Flatten()(conv1d)
-    dense1 = Dense(128, activation='relu')(flt)
-    dense1 = Dense(64, activation='relu')(dense1)
+    dense1 = Dense(32, activation='relu')(flt)
     dense1 = Dense(32, activation='relu')(dense1)
+    dense1 = Dense(16, activation='relu')(dense1)
     outputs = Dense(1)(dense1)
     model = Model(inputs = inputs, outputs = outputs)
     model.summary()
@@ -143,11 +150,11 @@ def quantile_loss(q, y_true, y_pred):
 
 q = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]   
 
-ep = 20
+ep = 10
 bts = 64
-es = EarlyStopping(monitor = 'loss', patience = 15, mode = 'auto')
+es = EarlyStopping(monitor = 'loss', patience = 5, mode = 'auto')
 lr = ReduceLROnPlateau(monitor= 'val_loss', patience = 3, factor= 0.3,  verbose = 1)
-optimizer = Adam(lr = 0.001)
+optimizer = Adam(lr = 0.01)
 
 x = []
 for j in q:
@@ -179,7 +186,7 @@ df_temp2[df_temp2<0] = 0
 num_temp2 = df_temp2.to_numpy()
 submission.loc[submission.id.str.contains("Day8"), "q_0.1":] = num_temp2
         
-submission.to_csv('./dacon/data/submission_210126_2.csv', index=False)
+submission.to_csv('./dacon/data/submission_210126_sub1.csv', index=False)
 
 #평가, 예측
 loss, mae = model.evaluate(x_test, [y1_test, y2_test],batch_size=7)

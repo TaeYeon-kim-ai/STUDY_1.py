@@ -152,7 +152,7 @@ def quantile_loss(q, y_true, y_pred):
 q = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]   
 
 ep = 10
-bts = 64
+bts = 32
 es = EarlyStopping(monitor = 'loss', patience = 15, mode = 'auto')
 lr = ReduceLROnPlateau(monitor= 'val_loss', patience = 3, factor= 0.3,  verbose = 1)
 optimizer = Adam(lr = 0.001)

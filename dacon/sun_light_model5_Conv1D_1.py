@@ -66,7 +66,6 @@ x_pred = x_pred.to_numpy()
 x_train = preprocess_data(df_train) #뒤에 두개 제외 Y값
 x_train = x_train.to_numpy()
 
-
 # #standar
 scaler = MinMaxScaler()
 scaler.fit(x_train[:,:-2])

@@ -16,46 +16,15 @@ from tensorflow.keras.optimizers import RMSprop, SGD, Nadam
 train = pd.read_csv('./dacon/data/train/train.csv')
 submission = pd.read_csv('./dacon/data/sample_submission.csv')
 
-# Hour - 시간
-# Minute - 분
-# DHI - 수평면 산란일사량(Diffuse Horizontal Irradiance (W/m2))
-# DNI - 직달일사량(Direct Normal Irradiance (W/m2))
-# WS - 풍속(Wind Speed (m/s))
-# RH - 상대습도(Relative Humidity (%))
-# T - 기온(Temperature (Degree C))
-# Target - 태양광 발전량 (kW)
-
-#pred데이터 병합
-def preprocess_data2(data):
-    temp = data.copy()
-    return temp.iloc[-48:, :]
-
-df_test = []
-
-for i in range(81):
-    file_path = './dacon/data/test/' + str(i) + '.csv' #test파일 불러오기
-    temp = pd.read_csv(file_path) #pandas로 파일 읽기
-    temp = preprocess_data2(temp) 
-    df_test.append(temp)
-
-X_test = pd.concat(df_test)
-#Attach padding dummy time series
-X_test = X_test.append(X_test[-96:])
-df_test  = X_test.drop(['Day','Minute'],axis=1)
-#print(df_test)#[3984 rows x 7 columns]
-
-#x_train
-# GHI 정립 전위모델 
+#GHI추가
 def Add_features(data):
     data['cos'] = np.cos(np.pi/2 - np.abs(data['Hour']%12 - 6)/6*np.pi/2)
     data.insert(1,'GHI',data['DNI']*data['cos']+data['DHI'])
     data.drop(['cos'], axis= 1, inplace = True)
     return data
 
-train = Add_features(train)
-
 def preprocess_data(data, is_train=True):
-    
+    data = Add_features(data) #GHI추가
     temp = data.copy()
     temp = temp[['Hour', 'TARGET', 'GHI', 'DHI', 'DNI', 'WS', 'RH', 'T']] # 컬럼 추출
 
@@ -65,7 +34,7 @@ def preprocess_data(data, is_train=True):
         temp['Target2'] = temp['TARGET'].shift(-48*2).fillna(method='ffill') #  -48시간을 열2개 추가하여 채움  +2일 타겟 데이터
         temp = temp.dropna() #결측값 제거
         
-        return temp.iloc[:-96] #예측날짜 제거 (-2일) 마지막 2일이 빈다.
+        return temp.iloc[:-96] #예측날짜 제거 (-2일)
 
     elif is_train==False:
         
@@ -77,25 +46,31 @@ df_train = preprocess_data(train)
 df_train.iloc[:48] # T1, T2추가된 df_train 0~48까지 자르기
 
 #============================================
-#numpy 변환
-x_train = preprocess_data(df_train) #뒤에 두개 제외 Y값
-x_train = x_train.to_numpy()
+#test데이터 병합
+df_test = []
+
+for i in range(81):
+    file_path = './dacon/data/test/' + str(i) + '.csv' #test파일 불러오기
+    temp = pd.read_csv(file_path) #pandas로 파일 읽기
+    temp = preprocess_data(temp, is_train=False) 
+    df_test.append(temp)
 
 #numpy 변환
 x_pred = pd.concat(df_test)
 x_pred = x_pred.to_numpy()
-print(x_train)
-print(x_pred)
+x_train = df_train.to_numpy()
+
+print(df_train.shape) #(52464, 10)
+print(x_pred.shape) #(3888, 8)
 #============================================
-'''
-# MinMax
+
+# #standar
 # scaler = MinMaxScaler()
 # scaler.fit(x_train[:,:-2])
 # x_train[:,:-2] = scaler.transform(x_train[:,:-2])
 # x_pred = scaler.transform(x_pred)
 
-#Standar
-scaler = StandardScaler()
+scaler = StandardScaler() 
 scaler.fit(x_train[:,:-2])
 x_train[:,:-2] = scaler.transform(x_train[:,:-2])
 x_pred = scaler.transform(x_pred)
@@ -116,9 +91,6 @@ def split_xy(dataset, time_steps):
     return np.array(x), np.array(y1), np.array(y2)
 
 x, y1, y2 = split_xy(x_train, 1)
-print(x.shape)
-print(y1.shape)
-print(y2.shape)
 
 def split_x(data,timestep):
     x = []
@@ -131,10 +103,10 @@ def split_x(data,timestep):
     return(np.array(x))
 
 x_pred = split_x(x_pred,1)
-# print(x.shape) #(52463, 1, 7)
-# print(y1.shape) #(52367, 1)
-# print(y2.shape) #(52367, 1)
-# print(x_pred.shape) #(3888, 1, 7)
+print(x.shape) #(52463, 1, 7)
+print(y1.shape) #(52367, 1)
+print(y2.shape) #(52367, 1)
+print(x_pred.shape) #(3888, 1, 7)
 
 #      Hour  TARGET  DHI  DNI   WS     RH     T
 # 288     0     0.0    0    0  0.8  80.92  -2.8
@@ -142,22 +114,20 @@ x_pred = split_x(x_pred,1)
 #============================================
 
 #train_sprit_t
-x_train, x_test, y1_train, y1_test = train_test_split(x, y1, train_size = 0.8, shuffle = True, random_state = 0)
-x_train, x_val, y1_train, y1_val = train_test_split(x_train, y1_train, train_size = 0.8, shuffle = True, random_state = 0)
-x_train, x_test, y2_train, y2_test = train_test_split(x, y2, train_size = 0.8, shuffle = True, random_state = 0)
-x_train, x_val, y2_train, y2_val = train_test_split(x_train, y2_train, train_size = 0.8, shuffle = True, random_state = 0)
+x_train, x_test, y1_train, y1_test = train_test_split(x, y1, train_size = 0.7, shuffle = True, random_state = 0)
+x_train, x_val, y1_train, y1_val = train_test_split(x_train, y1_train, train_size = 0.7, shuffle = True, random_state = 0)
+x_train, x_test, y2_train, y2_test = train_test_split(x, y2, train_size = 0.7, shuffle = True, random_state = 0)
+x_train, x_val, y2_train, y2_val = train_test_split(x_train, y2_train, train_size = 0.7, shuffle = True, random_state = 0)
 
 
 #2. 모델링
 def co1_model() :
     inputs = Input(shape = (x_train.shape[1], x_train.shape[2]))
     conv1d = Conv1D(256, 2, activation= 'relu', padding= 'SAME',input_shape = (x_train.shape[1], x_train.shape[2]))(inputs)
-    conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
-    conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
+    conv1d = Conv1D(512, 2, padding= 'SAME', activation='relu')(conv1d)
     conv1d = Conv1D(128, 2, padding= 'SAME', activation='relu')(conv1d)
     flt = Flatten()(conv1d)
     dense1 = Dense(128, activation='relu')(flt)
-    dense1 = Dense(128, activation='relu')(dense1)
     dense1 = Dense(64, activation='relu')(dense1)
     dense1 = Dense(32, activation='relu')(dense1)
     outputs = Dense(1)(dense1)
@@ -173,7 +143,7 @@ def quantile_loss(q, y_true, y_pred):
 
 q = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]   
 
-ep = 10
+ep = 20
 bts = 64
 es = EarlyStopping(monitor = 'loss', patience = 15, mode = 'auto')
 lr = ReduceLROnPlateau(monitor= 'val_loss', patience = 3, factor= 0.3,  verbose = 1)
@@ -209,7 +179,7 @@ df_temp2[df_temp2<0] = 0
 num_temp2 = df_temp2.to_numpy()
 submission.loc[submission.id.str.contains("Day8"), "q_0.1":] = num_temp2
         
-submission.to_csv('./dacon/data/submission_210125_1.csv', index=False)
+submission.to_csv('./dacon/data/submission_210126_2.csv', index=False)
 
 #평가, 예측
 loss, mae = model.evaluate(x_test, [y1_test, y2_test],batch_size=7)
@@ -217,15 +187,10 @@ y_predict = model.predict(x_test)
 print('loss : ', loss)
 print('mae : ', mae)
 
-# loss :  0.9801944494247437
-# mae :  8.641593933105469
+# ep 32 / bts 64
+# loss :  1.2249244451522827
+# mae :  8.092819213867188
 
-# epoch 10 / bts 64
-# loss :  0.8852948546409607 
-# mae :  7.69734001159668
-# Rank 132 // 	1.93841
-
-# epoch 32 / bts 32
-# loss :  15.803446769714355
-# mae :  17.937246322631836
-'''
+#ep 32 / bts 32
+# loss :  1.355821132659912
+# mae :  8.446158409118652

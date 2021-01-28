@@ -70,6 +70,9 @@ print('scores : ', scores)
 aaa = model.score(x_test, y_test)
 print('score : ', aaa)
 
+# 최적의 매개변수 :  RandomForestClassifier(max_depth=6, min_samples_leaf=3, min_samples_split=6,
+#                        n_jobs=-1)
+# 최종정답률 0.9722222222222222
 
 # Tensorflow
 # acc :  1

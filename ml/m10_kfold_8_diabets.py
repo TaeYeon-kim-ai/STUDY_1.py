@@ -38,8 +38,8 @@ for i in model :
 # DecisionTreeRegressor() scores :  [-0.40950123 -0.15864105 -0.07338286 -0.139174   -0.21844015]
 # RandomForestRegressor() scores :  [0.4035187  0.49539563 0.36021801 0.43064414 0.2255273 ]
 
-#Tensorflow 
-#acc : 0.9912280440330505
+#Tensorflow
+# r2 : 0.5128401315682825
 '''
 #3. 훈련:머신러닝 
 #다중분류일 경우 : 

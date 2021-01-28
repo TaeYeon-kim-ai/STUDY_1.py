@@ -79,9 +79,6 @@ parameters = [
 
  #총 15회 훈련 늘리기
 # RandomForestClassifier 객체 생성 후 GridSearchCV 수행
-rf_clf = RandomForestClassifier(random_state = 0, n_jobs = -1)
-grid_cv = GridSearchCV(rf_clf, param_grid = parameters, cv = 3, n_jobs = -1)
-
 #kfold
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2 , random_state = 44)
 Kfold = KFold(n_splits = 5, shuffle = True)

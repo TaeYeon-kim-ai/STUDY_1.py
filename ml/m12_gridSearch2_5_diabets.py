@@ -3,7 +3,7 @@ from sklearn.datasets import load_diabetes
 from sklearn.preprocessing import MinMaxScaler, StandardScaler # 둘중 하나 사용
 from sklearn.model_selection import train_test_split, KFold, cross_val_score, GridSearchCV
                                                                             #CV : cross_validation까지 하겠다.
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score,r2_score
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import Dense, Input
 from sklearn.svm import LinearSVC, SVC
@@ -62,7 +62,7 @@ model.fit(x_train, y_train)
 print("최적의 매개변수 : ", model.best_estimator_)
 
 y_pred = model.predict(x_test) #90번 한 것 중에 가장 좋은거 빼줌
-print('최종정답률', accuracy_score(y_test, y_pred))
+print('최종정답률', r2_score(y_test, y_pred))
 
 scores = cross_val_score(model, x, y, cv = Kfold) 
 print('scores : ', scores)
@@ -70,6 +70,9 @@ print('scores : ', scores)
 aaa = model.score(x_test, y_test)
 print('score : ', aaa)
 
+# 최적의 매개변수 :  RandomForestRegressor(max_depth=7, min_samples_leaf=5, min_samples_split=8,
+#                       n_jobs=-1)
+# 최종정답률 0.4697477461443865
 
-# Tensorflow
-# acc :  1
+#Tensorflow
+# r2 : 0.5128401315682825

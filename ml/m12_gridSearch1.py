@@ -1,3 +1,5 @@
+#gridSearch 파라미터 100% 다 돌린다. .. 느려;
+
 import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.preprocessing import MinMaxScaler, StandardScaler # 둘중 하나 사용

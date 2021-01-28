@@ -29,15 +29,17 @@ x_train = scaler.transform(x_train)
 x_test = scaler.transform(x_test)
 x_val = scaler.transform(x_val)
 
-#2. 모델링
+#2. 모델링 : 데이터에 따라 결과치 다르게 나타남 다르게 나타남
 from sklearn.svm import LinearSVC, SVC
 from sklearn.neighbors import KNeighborsClassifier #K-최근접 이웃 #classifier 분류모델 model = KNeighborsClassifier KNN
 #유사한 특성을 가진 데이터는 유사한 범주에 속하는 경향이 있다는 가정하에 사용. 정규화 해줘야함 , 원을 점차 확대해나가면서.
 from sklearn.linear_model import LogisticRegression #Logistic = 분류모델
 # 데이터가 특정 카테고리에 속할지를 0과 1사이의 연속적인 확률로 예측하는 회귀 알고리즘
 from sklearn.tree import DecisionTreeClassifier #classifier 분류모델 model = DecisionTreeClassifier DTN
-# 결정나무 : 
+# 결정나무 : 끝까지 분류, 가지치기. (과적합의 위험)
 from sklearn.ensemble import RandomForestClassifier #classifier 분류모델 model = RandomForestClassifier RFN
+# 앙상블 기법으로 고안, 훈련과정에서 구성한 다수의 결정 트리들을 랜덤하게 학습시켜 분류 또는 회귀의 결과 도출에 사용
+# 튜닝 쉬움  tree보완, 타깃 예측을 잘함, 대표적인 배깅모델
 
 #머신러닝 모델
 #model = LinearSVC()

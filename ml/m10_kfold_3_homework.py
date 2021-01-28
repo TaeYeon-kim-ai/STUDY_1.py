@@ -2,8 +2,8 @@
 #kfold validation 적용
 #train_test나눈 다음에 발리데이션 하지말고
 # kfold한 후에 train_test_split 사용
-# 기존 : train_test -----> kfold  2등분 - 5등분
-# 변경 : kfold -----> train_test  5등분 - 2등분
+# 기존 : kfold -----> train_test  5등분 - 2등분
+# 결과 : train_test -----> kfold  2등분 - 5등분
 # 결과 비교
 
 import numpy as np
@@ -26,13 +26,15 @@ x = dataset.data
 y = dataset.target
 print(dataset.DESCR)
 print(dataset.feature_names)
-print(x.shape) #(150, 4)
+print(x.shape) 
 print(x[:5])
 print(y.shape) #(150,)
 
 #kfold
 Kfold = KFold(n_splits = 5, shuffle = True) # 훈련, 검증 5개 만들어준다 # train_test_split시 validaton
 x_train, x_test, y_train, y_test = train_test_split(x, y, random_state = 77, shuffle = True, train_size = 0.8)
+print(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
+      #(120, 4)        (30, 4)        (120,)       (30,)
 
 #2. 모델링 : 데이터에 따라 결과치 다르게 나타남 다르게 나타남
 model = LinearSVC()

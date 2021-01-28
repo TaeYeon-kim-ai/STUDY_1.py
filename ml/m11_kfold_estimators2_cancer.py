@@ -37,6 +37,7 @@ for (name, algorithm) in allAlgorithms : #for 문에 넣는다 all_estimators의
     except : 
         #continue #예외로된 모델명 안찍힘
         print(name, '은 없는 놈!') #except로 없는애들 찍고 다시 for문으로 돌아간다
+
 '''
 AdaBoostClassifier 의 정답률 :  [0.97802198 0.95604396 0.95604396 0.91208791 0.95604396]
 BaggingClassifier 의 정답률 :  [0.97802198 0.92307692 0.98901099 0.9010989  0.94505495]
@@ -81,8 +82,8 @@ SVC 의 정답률 :  [0.93406593 0.94505495 0.9010989  0.84615385 0.92307692]
 StackingClassifier 은 없는 놈!
 VotingClassifier 은 없는 놈!
 '''
-# Tensorflow
-# acc :  1.0
+#Tensorflow 
+#acc : 0.9912280440330505
 
 #"7번째 부터 안돌아간다??"
 #TypeError: __init__() missing 1 required positional argument: 'base_estimator'

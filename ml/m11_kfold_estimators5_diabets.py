@@ -1,5 +1,5 @@
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, r2_score
 from sklearn.utils.testing import all_estimators #추정치
 import warnings
 
@@ -31,12 +31,14 @@ for (name, algorithm) in allAlgorithms : #for 문에 넣는다 all_estimators의
     try:  #try문 안에서 예외가 발생하면 except로 가서 처리하라
         model = algorithm() # for문에 의해 모든 모델을 돌려라
         score = cross_val_score(model, x_train, y_train, cv=kfold) #cv = 5로 넣어도 돌아가긴 하나, 옵션이 없음.
-        #model.fit(x_train, y_train)
         # y_pred = model.predict(x_test)
+        # r2 = r2_score(y_test, y_pred)
+        # print("r2 : ", r2)
         print(name, '의 정답률 : ', score)
     except : 
         #continue #예외로된 모델명 안찍힘
-        print(name, '은 없는 놈!') #except로 없는애들 찍고 다시 for문으로 돌아간다
+        print(name, '은 없음') #except로 없는애들 찍고 다시 for문으로 돌아간다
+
 '''
 ARDRegression 의 정답률 :  [0.47481641 0.48527985 0.46792353 0.5600166  0.37031528]
 AdaBoostRegressor 의 정답률 :  [0.48160747 0.44128304 0.45815722 0.51604346 0.19939256]
@@ -89,8 +91,8 @@ RidgeCV 의 정답률 :  [0.48578296 0.47510598 0.48087375 0.55916314 0.37137981
 SGDRegressor 의 정답률 :  [0.36747827 0.42533638 0.40301517 0.4295514  0.27220149]
 SVR 의 정답률 :  [0.13146673 0.15492254 0.09948322 0.02698625 0.11497241]
 '''
-# Tensorflow
-# acc :  1.0
+#Tensorflow
+# r2 : 0.5128401315682825
 
 #"7번째 부터 안돌아간다??"
 #TypeError: __init__() missing 1 required positional argument: 'base_estimator'
@@ -98,3 +100,16 @@ SVR 의 정답률 :  [0.13146673 0.15492254 0.09948322 0.02698625 0.11497241]
 import sklearn
 print(sklearn.__version__) #0.23.1 #all_estimators는 0.20정도에 모든 것들이 먹힌다.
 #해결법 (?) 
+
+#4. 평가
+y_pred = model.predict(x_test)
+#print(y_pred)
+# print(y)
+
+# loss, acc = model.evaluate(x_test, y_test) #본래 loss 와 acc이지만
+result = model.score(x_test, y_test) #자동으로 evaluate 해서 acc 빼준다.
+print('result : ', result)
+
+#accuracy_score
+#                  (실데이터, 예측결과 데이터)
+

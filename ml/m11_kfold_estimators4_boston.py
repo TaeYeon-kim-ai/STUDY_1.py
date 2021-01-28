@@ -37,6 +37,7 @@ for (name, algorithm) in allAlgorithms : #for 문에 넣는다 all_estimators의
     except : 
         #continue #예외로된 모델명 안찍힘
         print(name, '은 없는 놈!') #except로 없는애들 찍고 다시 for문으로 돌아간다
+
 '''
 ARDRegression 의 정답률 :  [0.74662694 0.63754332 0.66286116 0.77005862 0.61576365]
 AdaBoostRegressor 의 정답률 :  [0.86068444 0.80513979 0.83111    0.8206384  0.81065369]
@@ -99,8 +100,9 @@ TweedieRegressor 의 정답률 :  [0.64759008 0.58408277 0.6855082  0.68449299 0
 VotingRegressor 은 없는 놈!
 _SigmoidCalibration 의 정답률 :  [nan nan nan nan nan]
 '''
-# Tensorflow
-# acc :  1.0
+
+#Tensorflow 
+# R2 : 0.9430991642272919
 
 #"7번째 부터 안돌아간다??"
 #TypeError: __init__() missing 1 required positional argument: 'base_estimator'

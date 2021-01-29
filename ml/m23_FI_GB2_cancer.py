@@ -1,7 +1,7 @@
 # 컬럼 drop
 
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 import pandas as pd
@@ -31,8 +31,9 @@ x_train, x_test, y_train, y_test = train_test_split(
     x, y, train_size =0.8, random_state = 66, shuffle=True)
 
 #2. 모델
-#model = DecisionTreeClassifier(max_depth=4)
-model = RandomForestClassifier(max_depth=4)
+# model = DecisionTreeClassifier(max_depth=4)
+# model = RandomForestClassifier(max_depth=4)
+model = GradientBoostingClassifier(max_depth=4)
 
 #3. 훈련
 model.fit(x_train, y_train)
@@ -75,8 +76,9 @@ x1_train, x1_test, y1_train, y1_test = train_test_split(
 )
 
 #2. 모델
-#model1 = DecisionTreeClassifier(max_depth=4)
-model1 = RandomForestClassifier(max_depth=4)
+# model1 = DecisionTreeClassifier(max_depth=4)
+#model1 = RandomForestClassifier(max_depth=4)
+model1 = GradientBoostingClassifier(max_depth=4)
 
 #3. 훈련
 model1.fit(x1_train, y1_train)
@@ -117,3 +119,24 @@ print("acc col정리 : ", acc1)
 #  0.00201157 0.0170707  0.01030759 0.00904531 0.00473572 0.00891811
 #  0.01327905 0.00511945 0.00695334 0.00330511 0.00317045]
 # acc col정리 :  0.9385964912280702
+
+#GradientBoostingClassifier
+#정리전
+# [2.68768337e-05 6.05859874e-02 9.85792370e-04 2.58723784e-03
+#  5.32392604e-03 2.70448173e-04 1.54224195e-03 7.61611698e-02
+#  4.90669525e-04 3.71977555e-04 6.43581371e-03 2.29574609e-05
+#  2.73080551e-03 1.10345124e-02 2.65651460e-03 6.58010941e-03
+#  2.47358031e-03 8.29599538e-04 4.92183387e-04 2.43477756e-03
+#  4.84372127e-02 2.71373090e-02 2.34103491e-03 6.14494518e-01
+#  1.33797935e-03 5.80635683e-04 9.27163702e-03 1.10287750e-01
+#  1.42958634e-03 6.45156372e-04]
+# acc :  0.956140350877193
+
+#정리후
+# [2.29528628e-02 6.06564358e-02 7.55499216e-02 3.89390602e-02
+#  5.65698668e-02 3.81017746e-02 7.48302220e-03 3.34414800e-03
+#  1.25351050e-03 4.08393014e-03 1.18120333e-03 3.52478068e-03
+#  4.97840012e-04 1.83781537e-03 7.18710770e-04 4.48620249e-04
+#  6.50689261e-01 1.87092711e-04 5.24356166e-03 3.29582422e-03
+#  3.16127559e-05 2.08139819e-02 2.59516283e-03]
+# acc col정리 :  0.9298245614035088

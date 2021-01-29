@@ -5,7 +5,7 @@ import datetime
 from sklearn.model_selection import train_test_split, KFold, cross_val_score, GridSearchCV, RandomizedSearchCV
 from sklearn.metrics import r2_score
 from sklearn.svm import LinearSVC, SVC
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor 
 
 #경고처리
 warnings.filterwarnings('ignore')
@@ -39,6 +39,7 @@ parameter = [
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 0, shuffle = True)
 kfold = KFold(n_splits=5, shuffle=True)
 model = RandomizedSearchCV(RandomForestRegressor(), parameter, cv = kfold)
+#n-iter
 
 #3. 훈련
 print("Start time - {}".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))

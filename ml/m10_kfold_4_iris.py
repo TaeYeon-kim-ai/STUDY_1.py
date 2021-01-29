@@ -12,7 +12,7 @@ from sklearn.svm import LinearSVC, SVC
 from sklearn.neighbors import KNeighborsClassifier #K-최근접 이웃 #classifier 분류모델 model = KNeighborsClassifier KNN
 from sklearn.linear_model import LogisticRegression #Logistic = 분류모델
 from sklearn.tree import DecisionTreeClassifier #classifier 분류모델 model = DecisionTreeClassifier DTN
-from sklearn.ensemble import RandomForestClassifier #classifier 분류모델 model = RandomForestClassifier RFN
+from sklearn.ensemble import RandomForestClassifier #classifier 분류모델 model = RandomForestClassifier RFN 트리가 여러개니까 앙상블임
 
 #1. 데이터
 dataset = load_iris()

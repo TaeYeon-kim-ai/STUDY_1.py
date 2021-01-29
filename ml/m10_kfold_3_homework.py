@@ -32,6 +32,11 @@ print(y.shape) #(150,)
 
 #kfold
 Kfold = KFold(n_splits = 5, shuffle = True) # 훈련, 검증 5개 만들어준다 # train_test_split시 validaton
+for train_index, test_index in Kfold.split(x): 
+      print("TRAIN:", train_index, "TEST:", test_index) 
+      x_train, x_test = x[train_index], x[test_index] 
+      y_train, y_test = y[train_index], y[test_index]
+
 x_train, x_test, y_train, y_test = train_test_split(x, y, random_state = 77, shuffle = True, train_size = 0.8)
 print(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
       #(120, 4)        (30, 4)        (120,)       (30,)
@@ -47,7 +52,6 @@ print('scores : ', scores)
 # Tensorflow
 # acc :  1.0
 
-'''
 #3. 훈련:머신러닝 
 #다중분류일 경우 : 
 #model.compile(loss = 'mse', optimizer = 'adam', metrics = ['acc'])
@@ -70,4 +74,3 @@ y_pred = model.predict(x_test)
 #                  (실데이터, 예측결과 데이터)
 acc = accuracy_score(y_test, y_pred)
 print("accuracy_score : ", acc)
-'''

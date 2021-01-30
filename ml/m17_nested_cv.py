@@ -24,11 +24,11 @@ warnings.filterwarnings('ignore')
 dataset = load_iris()
 x = dataset.data
 y = dataset.target
-print(dataset.DESCR)
-print(dataset.feature_names)
-print(x.shape) #(150, 4)
-print(x[:5])
-print(y.shape) #(150,)
+# print(dataset.DESCR)
+# print(dataset.feature_names)
+# print(x.shape) #(150, 4)
+# print(x[:5])
+# print(y.shape) #(150,)
 
 #list형 딕셔너리 제작
 #SVC에 들어가있는 파라미터 

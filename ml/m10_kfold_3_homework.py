@@ -24,11 +24,6 @@ from sklearn.ensemble import RandomForestClassifier #classifier 분류모델 mod
 dataset = load_iris()
 x = dataset.data
 y = dataset.target
-print(dataset.DESCR)
-print(dataset.feature_names)
-print(x.shape) 
-print(x[:5])
-print(y.shape) #(150,)
 
 #kfold
 Kfold = KFold(n_splits = 5, shuffle = True) # 훈련, 검증 5개 만들어준다 # train_test_split시 validaton
@@ -37,9 +32,9 @@ for train_index, test_index in Kfold.split(x):
       x_train, x_test = x[train_index], x[test_index] 
       y_train, y_test = y[train_index], y[test_index]
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, random_state = 77, shuffle = True, train_size = 0.8)
+x_train, x_test, y_train, y_test = train_test_split(x_train, y_train, random_state = 77, shuffle = True, train_size = 0.8)
 print(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
-      #(120, 4)        (30, 4)        (120,)       (30,)
+     
 
 #2. 모델링 : 데이터에 따라 결과치 다르게 나타남 다르게 나타남
 model = LinearSVC()

@@ -9,14 +9,14 @@ import seaborn as sns
 
 
 def get_column_index(model):
-    feature = model.feature_importances_
-    feature_list = []
-    for i in feature:
+    feature = model.feature_importances_ # feature_importances
+    feature_list = [] #list
+    for i in feature: # i 로 반환
         feature_list.append(i)
-    feature_list.sort(reverse = True)
+    feature_list.sort(reverse = True) #역으로 배열
  
-    result = []
-    for j in range(len(feature_list)-len(feature_list)//4):
+    result = [] 
+    for j in range(len(feature_list)-len(feature_list)//4): # 1/4 추출 전체에서 제거
         result.append(feature.tolist().index(feature_list[j]))
     return result
 

@@ -78,6 +78,7 @@ model1 = DecisionTreeClassifier(max_depth=4)
 #3. 훈련
 model1.fit(x1_train, y1_train)
 
+
 #4. 평가, 예측
 acc1 = model1.score(x1_test, y1_test)
 print(model1.feature_importances_)

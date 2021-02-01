@@ -6,19 +6,7 @@ from sklearn.datasets import load_boston
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import seaborn as sns
-
-
-def get_column_index(model):
-    feature = model.feature_importances_
-    feature_list = []
-    for i in feature:
-        feature_list.append(i)
-    feature_list.sort(reverse = True)
- 
-    result = []
-    for j in range(len(feature_list)-len(feature_list)//4):
-        result.append(feature.tolist().index(feature_list[j]))
-    return result
+from xgboost import XGBRegressor, plot_importance
 
 
 #1. 데이터
@@ -33,7 +21,8 @@ x_train, x_test, y_train, y_test = train_test_split(
 #2. 모델
 # model = DecisionTreeRegressor(max_depth=4)
 # model = RandomForestRegressor(max_depth=4)
-model = GradientBoostingRegressor(max_depth=4)
+#model = GradientBoostingRegressor(max_depth=4)
+model = XGBRegressor(n_job = -1)
 
 #3. 훈련
 model.fit(x_train, y_train)
@@ -56,37 +45,10 @@ def plot_feature_importances_dataset(model):
     plt.ylabel("Features")
     plt.ylim(-1, n_features)
 
-plot_feature_importances_dataset(model)
+plot_importance(model)
 plt.show()
 
 #=================================================================
-
-
-#함수 적용 컬럼 추출
-result = get_column_index(model)
-print(result)
-x1 = pd.DataFrame(dataset.data, columns = dataset.feature_names)
-x1 = x1.iloc[:, [x for x in result]]
-y1 = dataset.target
-
-x1 = x1.values
-
-x1_train, x1_test, y1_train, y1_test = train_test_split(
-    x1, y1, test_size = 0.2, random_state = 77
-)
-
-#2. 모델
-# model1 = DecisionTreeRegressor(max_depth=4)
-#model1 = RandomForestRegressor(max_depth=4)
-model1 = GradientBoostingRegressor(max_depth=4)
-
-#3. 훈련
-model1.fit(x1_train, y1_train)
-
-#4. 평가, 예측
-acc1 = model1.score(x1_test, y1_test)
-print(model1.feature_importances_)
-print("acc col정리 : ", acc1)
 
 
 #DecisionTreeRegressor
@@ -125,3 +87,15 @@ print("acc col정리 : ", acc1)
 # [0.52018549 0.27342655 0.08721533 0.02310321 0.02308252 0.02069672
 #  0.02276342 0.01181393 0.0154727  0.00224015]
 # acc col정리 :  0.9022386471564411
+
+#XGBRegressor
+#정리전
+# [0.01447935 0.00363372 0.01479119 0.00134153 0.06949984 0.30128643
+#  0.01220458 0.0518254  0.0175432  0.03041655 0.04246345 0.01203115
+#  0.42848358]
+# r2 :  0.9221188601856797
+
+#정리후
+# [0.39029327 0.25759977 0.05749745 0.08199805 0.06707577 0.04337953
+#  0.02392683 0.03295108 0.0299829  0.01529539]
+# r2 col정리 :  0.882833592562321

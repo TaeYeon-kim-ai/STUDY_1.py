@@ -52,7 +52,7 @@ score = cross_val_score(model, x_train ,y_train, cv= Kfold)
 
 print('교차검증점수 : ', score)
 
-'''
+
 #3. 훈련
 model.fit(x_train, y_train)
 
@@ -75,4 +75,3 @@ print(aaa)
 
 # Tensorflow
 # acc :  1
-'''

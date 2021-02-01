@@ -6,7 +6,8 @@ from sklearn.datasets import load_diabetes
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import seaborn as sns
-
+from xgboost import XGBRegressor
+from sklearn.metrics import r2_score
 
 def get_column_index(model):
     feature = model.feature_importances_
@@ -33,7 +34,8 @@ x_train, x_test, y_train, y_test = train_test_split(
 #2. 모델
 # model = DecisionTreeRegressor(max_depth=4)
 # model = RandomForestRegressor(max_depth=4)
-model = GradientBoostingRegressor(max_depth=4)
+# model = GradientBoostingRegressor(max_depth=4)
+model = XGBRegressor(n_job = -1)
 
 #3. 훈련
 model.fit(x_train, y_train)
@@ -78,8 +80,8 @@ x1_train, x1_test, y1_train, y1_test = train_test_split(
 #2. 모델
 #model1 = DecisionTreeRegressor(max_depth=4)
 #model1 = RandomForestRegressor(max_depth=4)
-model1 = GradientBoostingRegressor(max_depth=4)
-
+# model1 = GradientBoostingRegressor(max_depth=4)
+model1 = XGBRegressor(n_job = -1)
 
 #3. 훈련
 model1.fit(x1_train, y1_train)
@@ -88,6 +90,9 @@ model1.fit(x1_train, y1_train)
 acc1 = model1.score(x1_test, y1_test)
 print(model1.feature_importances_)
 print("acc col정리 : ", acc1)
+
+# r2 = r2_score(y_test, y_pred)
+# print("r2 : ", r2)
 
 
 #DecisionTreeRegressor
@@ -120,3 +125,14 @@ print("acc col정리 : ", acc1)
 # [0.39319594 0.22452784 0.10333879 0.05565111 0.06917675 0.05265098
 #  0.05238476 0.04907383]
 # acc col정리 :  0.46617038120420096
+
+#XGBRegressor
+#정리전
+# [0.02593722 0.03821947 0.19681752 0.06321313 0.04788675 0.05547737
+#  0.07382318 0.03284872 0.3997987  0.06597802]
+# r2 :  0.23802704693460175
+
+#정리후
+# [0.21371435 0.23727222 0.07780732 0.08199577 0.12039103 0.06126727
+#  0.0556867  0.1518653 ]
+# r2 col정리 :  0.3480727891889245

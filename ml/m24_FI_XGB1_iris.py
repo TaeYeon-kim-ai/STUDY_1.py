@@ -97,11 +97,11 @@ x1_train, x1_test, y1_train, y1_test = train_test_split(
 # model1 = DecisionTreeClassifier(max_depth=4)
 #model1 = RandomForestClassifier(max_depth=4)
 #model1 = GradientBoostingClassifier(max_depth=4)
-model1 = XGBClassifier(n_job = -1) 
+model1 = XGBClassifier(n_job = -1, use_label_encoder= False) #ABCD 를 1,2,3,4로 변환해준다. 라벨인코더 하지 않을거면 False
 
 
 #3. 훈련
-model1.fit(x1_train, y1_train)
+model1.fit(x1_train, y1_train, eval_metric='logloss') #매트릭스 안쓸려면 logloss로 써라
 
 #4. 평가, 예측
 acc1 = model1.score(x1_test, y1_test)

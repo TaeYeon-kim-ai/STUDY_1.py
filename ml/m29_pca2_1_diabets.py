@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.model_selection import train_test_split, KFold, cross_val_score, GridSearchCV, RandomizedSearchCV
 from sklearn.datasets import load_diabetes
 from sklearn.decomposition import PCA
 #from sklearn.ensemble import RandomForestClassifier
@@ -8,19 +9,7 @@ x = datasets.data
 y = datasets.target
 print(x.shape, y.shape) #(442, 10) (442,)
 
-# pca = PCA(n_components = 9, ) #n_components 압축 열 수 지정
-# x2 = pca.fit_transform(x) #pca를 핏트랜스폼 (x)
-# print(x2.shape) #(442, 7) #컬럼 재구성
-
-# #압축된 것 중에서 어떤 피쳐가 중요한지
-# pca_EVR = pca.explained_variance_ratio_
-# print(pca_EVR) #컬럼 10개를 7개로 압축시켜서
-# print(sum(pca_EVR))
-
-#7개 # 0.9479436357350411 
-#8개 # 0.9913119559917795
-#9개 # 0.999143947009897
-
+#열 중요도 추출
 pca = PCA()
 pca.fit(x)
 cumsum = np.cumsum(pca.explained_variance_ratio_)
@@ -40,3 +29,20 @@ import matplotlib.pyplot as plt
 plt.plot(cumsum)
 plt.grid()
 plt.show()
+
+pca = PCA(n_components = 9, ) #n_components 압축 열 수 지정
+x2 = pca.fit_transform(x) #pca를 핏트랜스폼 (x)
+print(x2.shape) #(442, 7) #컬럼 재구성
+
+#압축된 것 중에서 어떤 피쳐가 중요한지
+pca_EVR = pca.explained_variance_ratio_
+print(pca_EVR) #컬럼 10개를 7개로 압축시켜서
+print(sum(pca_EVR))
+
+#7개 # 0.9479436357350411 
+#8개 # 0.9913119559917795
+#9개 # 0.999143947009897
+#=========================================
+
+#1. 데이터
+print(x.shape)

@@ -28,22 +28,6 @@ y_train = np.zeros((len(y), len(y.unique())))
 for i, digit in enumerate(y):
     y_train[i, digit] = 1
 
-# #=================================================================================
-# # ImageDatagenerator & data augmentation
-# from keras.preprocessing.image import ImageDataGenerator
-# from numpy import expand_dims
-# idg = ImageDataGenerator(height_shift_range=(-1,1),width_shift_range=(-1,1))
-# idg2 = ImageDataGenerator()
-
-# # show augmented image data
-# sample_data = x[100].copy()
-# sample = expand_dims(sample_data,0)
-# sample_datagen = ImageDataGenerator(height_shift_range=(-1,1), width_shift_range=(-1,1))
-# sample_generator = sample_datagen.flow(sample, batch_size=1)
-
-
-# #=================================================================================
-
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, shuffle = True, random_state = 0)
 x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size = 0.2, shuffle = True, random_state = 0)
 

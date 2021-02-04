@@ -41,20 +41,21 @@ y_train = np.zeros((len(y), len(y.unique())))
 for i, digit in enumerate(y):
     y_train[i, digit] = 1
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, shuffle = False, random_state = 0)
+x_train, x_test, y_train, y_test = train_test_split(x, y, 
+    test_size = 0.2, 
+    shuffle = False, 
+    random_state = 0)
 
 
 #MODELing
 kfold = KFold(n_splits = 5, shuffle = True)
 parameters = [
-    {"n_estimators" : [200], 
-    "learning_rate " : [0.01],
-    "max_depth" : [64],
-    "colsample_bytree" : [0.9],
-    "colsample_bylevel" : [0.9]}
+    {"n_estimators" : [100], 
+    "learning_rate" : [0.1, 0.3, 0.001, 0.01], 
+    "max_depth" : [8, 16, 32]},
     ]
 
-model = XGBClassifier(parameters)
+model = RandomizedSearchCV(XGBClassifier(),parameters,cv = kfold)
 
 #PRAC
 model.fit(x_train,y_train, verbose = 1, 
@@ -68,7 +69,11 @@ result = model.score(x_test, y_test)
 y_pred = model.predict(x_test)
 acc = accuracy_score(y_test, y_pred)
 print("acc : ", acc)
-results = model.evals_result()
+
+#test1
+submission = pd.read_csv('C:/STUDY/dacon/computer/submission.csv')
+submission['digit'] = result.argmax(1)
+submission.to_csv('C:/STUDY/dacon/computer/2021.02.03.csv',index=False)
 
 #acc :  0.4878048780487805
 

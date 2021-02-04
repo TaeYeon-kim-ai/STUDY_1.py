@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, StratifiedKFold
 from xgboost import XGBClassifier
 from sklearn.decomposition import PCA
 from sklearn.metrics import accuracy_score
@@ -36,73 +36,86 @@ y_train = np.zeros((len(y), len(y.unique())))
 for i, digit in enumerate(y):
     y_train[i, digit] = 1
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, shuffle = True, stratify = y)
+skf = StratifiedKFold(n_splits= 5, random_state=77, shuffle=True)
+
+# x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, shuffle = True, random_state=0)
+# x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size = 0.2, shuffle = True, random_state=0)
 
 #ImageDatagenrtator & data augmentation
-# height_shift_range: 지정된 수직방향 이동 범위내에서 임의로 원본이미지를 이동. 수치는 전체 높이의 비율(실수). 예를 들어 0.1이고 전체 높이가 100이면, 10픽셀 내외로 상하 이동
-# width_shift_range : 지정된 수평방향 이동 범위내에서 임의로 원본이미지를 이동. 수치는 전체 높이의 비율(실수). 예를 들어 0.1이고 전체 높이가 100이면, 10픽셀 내외로 상하 이동
 idg = ImageDataGenerator(height_shift_range=(-1, 1), width_shift_range=(-1,1))
 idg2 = ImageDataGenerator()
 
-train_generator = idg.flow(x_train,y_train,batch_size=8)
-test_generator = idg2.flow(x_test,y_test)
-pred_generator = idg2.flow(x_pred,shuffle=False)
+val_loss_min = []
+result = 0
+nth = 0
 
-#sample_data = x[idx].reshape(1,28,28,1)
-#sample_generator = idg.flow(sample_data, batch_size=1)
+for train_index, valid_index in skf.split(x,train['digit']) :
 
-#print(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
-#(1638, 28, 28, 1) (410, 28, 28, 1) (1638,) (410,)
+    x_train = x[train_index]
+    x_valid = x[valid_index]    
+    y_train = train['digit'][train_index]
+    y_valid = train['digit'][valid_index]
+    
+    train_generator = idg.flow(x_train,y_train,batch_size=8)
+    valid_generator = idg2.flow(x_valid,y_valid)
+    test_generator = idg2.flow(x_pred,shuffle=False)
 
-# #tensorflow.keras .. to_categorical
-# from tensorflow.keras.utils import to_categorical
-# y_train = to_categorical(y_train)
-# y_test = to_categorical(y_test)
 
+    #모델링 CNN
+    inputs = Input(shape = (28,28,1))
+    conv2d = Conv2D(28, (4), strides =1 ,padding = 'SAME', input_shape = (28,28,1))(inputs)
+    conv2d = Conv2D(64, (2), strides =1, padding = 'SAME', activation='relu')(conv2d)
+    conv2d = Conv2D(64, (2), strides =1, padding = 'SAME', activation='relu')(conv2d)
+    mp = MaxPooling2D(2)(conv2d)
+    dp = Dropout(0.2)(mp)
 
-#모델링 CNN
-inputs = Input(shape = (28,28,1))
-conv2d = Conv2D(128, (4), strides =1 ,padding = 'SAME', input_shape = (28,28,1))(inputs)
-conv2d = Conv2D(256, (2), strides =1, padding = 'SAME', activation='relu')(conv2d)
-mp = MaxPooling2D(2)(conv2d)
-drop = Dropout(0.3)(mp)
+    conv2d = Conv2D(32, (2), strides =1, padding = 'SAME', activation='relu')(dp)
+    conv2d = Conv2D(32, (2), strides =1, padding = 'SAME', activation='relu')(conv2d)
+    conv2d = Conv2D(32, (2), strides =1, padding = 'SAME', activation='relu')(conv2d)
+    conv2d = Conv2D(64, (2), strides =1, padding = 'SAME', activation='relu')(conv2d)
+    mp = MaxPooling2D(2)(conv2d)
+    dp = Dropout(0.2)(mp)
+    flt = Flatten()(dp)
 
-conv2d = Conv2D(256, (2), strides =1, padding = 'SAME', activation='relu')(drop)
-conv2d = Conv2D(128, (2), strides =1, padding = 'SAME', activation='relu')(conv2d)
-mp = MaxPooling2D(2)(conv2d)
-drop = Dropout(0.3)(mp)
+    dense = Dense(32, activation='relu')(flt)
+    dense = Dense(32, activation='relu')(dense)
+    dense = Dense(16, activation='relu')(dense)
 
-conv2d = Conv2D(64, (2), strides =1, padding = 'SAME', activation='relu')(drop)
-conv2d = Conv2D(64, (2), strides =1, padding = 'SAME', activation='relu')(conv2d)
-conv2d = Conv2D(128, (2), strides =1, padding = 'SAME', activation='relu')(conv2d)
-mp = MaxPooling2D(2)(conv2d)
-drop = Dropout(0.3)(mp)
-flt = Flatten()(drop)
+    outputs = Dense(10, activation='softmax')(dense) #분류 수 만큼 output
+    model = Model(inputs = inputs, outputs = outputs)
 
-dense = Dense(32, activation='relu')(flt)
-dense = Dense(64, activation='relu')(dense)
-dense = Dense(16, activation='relu')(dense)
-drop = Dropout(0.3)(mp)
-
-outputs = Dense(10, activation='softmax')(dense) #분류 수 만큼 output
-model = Model(inputs = inputs, outputs = outputs)
-model.summary()
 
 # model.save('C:/data/h5/vision_model1.h5')#모델저장
 # model = load_model('C:/data/h5/vision_model1.h5')#모델로드
 
 
 #3. 훈련
-from tensorflow.keras.optimizers import Adam, Adadelta, Adamax, Adagrad
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
-lr = ReduceLROnPlateau( monitor='val_loss', factor=0.3, patience=3, verbose=1, mode='auto')
-es = EarlyStopping(monitor = 'loss', patience = 10, mode = 'auto')
-modelpath = 'C:/data/MC/best_cvision_{epoch:02d}-{val_loss:.4f}.hdf5'
-mc = ModelCheckpoint(filepath = modelpath ,save_best_only=True, mode = 'auto')
-model.compile(loss = 'sparse_categorical_crossentropy', optimizer = 'adam' , metrics = ['acc'])
-learning_hist = model.fit(train_generator, epochs = 100, batch_size = 64, validation_data=(test_generator), verbose = 1 ,callbacks = [es, lr]) #mc
-#train_genrtator: x_train, y_train
-#test_generator: x_test, y_test
+    from tensorflow.keras.optimizers import Adam, Adadelta, Adamax, Adagrad
+    from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+    lr1 = ReduceLROnPlateau( monitor='val_loss', factor=0.3, patience=3, verbose=1, mode='auto')
+    es = EarlyStopping(monitor = 'loss', patience = 5, mode = 'auto')
+    modelpath = 'C:/data/MC/best_cvision_{epoch:02d}-{val_loss:.4f}.hdf5'
+    mc = ModelCheckpoint(filepath = modelpath ,save_best_only=True, mode = 'auto')
+    model.compile(loss = 'sparse_categorical_crossentropy', optimizer = Adam(lr=0.001,epsilon=None) , metrics = ['acc'])
+    learning_hist = model.fit(train_generator, epochs = 100, batch_size = 64, validation_data=(valid_generator), verbose = 1 ,callbacks = [es, lr1]) #mc
+    #train_genrtator: x_train, y_train
+    #test_generator: x_test, y_test
+    
+    # predict
+    # model.save('C:/data/h5/vision_model2.h5') #모델저장2
+    # model.save_weights('C:/data/h5/vision_model2_weight.h5') #weight저장
+    # model.load_model('C:/data/h5/vision_model2.h5') #모델불러오기
+    # model.load_weights('C:/data/h5/vision_model2_weight.h5') #weight불러오기
+    result += model.predict_generator(test_generator,verbose=True)/5
+
+    # save val_loss
+    hist = pd.DataFrame(learning_hist.history)
+    val_loss_min.append(hist['val_loss'].min())
+
+    nth += 1
+    print(nth, '번째 학습을 완료했습니다.')
+
+model.summary()
 
 #3.1 시각화
 hist = pd.DataFrame(learning_hist.history)
@@ -132,14 +145,9 @@ plt.show()
 
 
 #4. 평가, 예측
-loss = model.evaluate(test_generator)
-print("loss : ", loss)
-result = model.predict(pred_generator)
-
-#test1
 submission = pd.read_csv('C:/STUDY/dacon/computer/submission.csv')
 submission['digit'] = result.argmax(1)
-submission.to_csv('C:/STUDY/dacon/computer/2021.02.02.csv',index=False)
+submission.to_csv('C:/STUDY/dacon/computer/2021.02.03.csv',index=False)
 
 '''
 sub['digit'] = result.argmax(1)

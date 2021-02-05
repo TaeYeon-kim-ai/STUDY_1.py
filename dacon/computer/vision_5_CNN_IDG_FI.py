@@ -62,35 +62,52 @@ for train_index, valid_index in skf.split(data,train['digit']) :
 
     #모델링 CNN
     inputs = Input(shape = (28,28,1))
-    conv2d = Conv2D(32, (4), strides =1 ,padding = 'SAME', input_shape = (28,28,1))(inputs)
-    btcn = BatchNormalization()(conv2d)
-    mp = MaxPooling2D(2)(conv2d)
+    c = Conv2D(32, (4), strides =1 ,padding = 'SAME', kernel_initializer='he_normal', input_shape = (28,28,1))(inputs)
+    c = BatchNormalization()(c)
+    c = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(c)
+    c = BatchNormalization()(c)
+    c = MaxPooling2D(2)(c)
+    c = Dropout(0.4)(c)
 
-    conv2d = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(mp)
-    btcn = BatchNormalization()(conv2d)
-    conv2d = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(btcn)
-    mp = MaxPooling2D(2)(conv2d)
-    drop = Dropout(0.3)(mp)
+    c = BatchNormalization()(c)
+    c = Conv2D(64, (3), strides =1, padding = 'SAME', activation='relu')(c)
+    c = BatchNormalization()(c)
+    c = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(c)
+    c = BatchNormalization()(c)
+    c = MaxPooling2D(2)(c)
+    c = Dropout(0.4)(c)
+    
+    c = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(c)
+    c = BatchNormalization()(c)
+    c = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(c)
+    c = BatchNormalization()(c)
+    c = Conv2D(64, (3), strides =1, padding = 'SAME', activation='relu')(c)
+    c = BatchNormalization()(c)
+    c = MaxPooling2D(2)(c)
+    c = Dropout(0.4)(c)
 
-    btcn = BatchNormalization()(drop)
-    conv2d = Conv2D(64, (3), strides =1, padding = 'SAME', activation='relu')(btcn)
-    btcn = BatchNormalization()(conv2d)
-    conv2d = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(btcn)
-    btcn = BatchNormalization()(conv2d)
-    conv2d = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(btcn)
-    btcn = BatchNormalization()(conv2d)
-    mp = MaxPooling2D(2)(conv2d)
-    drop = Dropout(0.3)(mp)
-    flt = Flatten()(drop)
+    c = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(c)
+    c = BatchNormalization()(c)
+    c = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(c)
+    c = BatchNormalization()(c)
+    c = Conv2D(64, (3), strides =1, padding = 'SAME', activation='relu')(c)
+    c = BatchNormalization()(c)
+    c = GlobalAveragePooling2D()(c)
+    c = Dropout(0.4)(c)
 
-    dense = Dense(32, activation='relu')(flt)
-    btcn = BatchNormalization()(dense)
-    dense = Dense(128, activation='relu')(btcn)
-    btcn = BatchNormalization()(dense)
-    dense = Dense(64, activation='relu')(btcn)
-    btcn = BatchNormalization()(dense)
+    c = Flatten()(c)
 
-    outputs = Dense(10, activation='softmax')(btcn) #분류 수 만큼 output
+    c = Dense(32, activation='relu')(c)
+    c = BatchNormalization()(c)
+    c = Dense(32, activation='relu')(c)
+    c = BatchNormalization()(c)
+    c = Dense(64, activation='relu')(c)
+    c = BatchNormalization()(c)
+    c = Dense(64, activation='relu')(c)
+    c = BatchNormalization()(c)
+    c = Dropout(0.2)(c)
+
+    outputs = Dense(10, activation='softmax')(c) #분류 수 만큼 output
     model = Model(inputs = inputs, outputs = outputs)
 
 
@@ -105,12 +122,7 @@ for train_index, valid_index in skf.split(data,train['digit']) :
     mc = ModelCheckpoint(filepath = modelpath ,save_best_only=True, mode = 'auto')
     model.compile(loss = 'sparse_categorical_crossentropy', optimizer = Adam(lr=0.001,epsilon=None) , metrics = ['acc'])
     learning_hist = model.fit_generator(train_generator, epochs = 1000, validation_data=(valid_generator), verbose = 1 ,callbacks = [es, lr1]) #mc
-    
-    # predict
-    # model.save('C:/data/h5/vision_model2.h5') #모델저장2
-    # model.save_weights('C:/data/h5/vision_model2_weight.h5') #weight저장
-    # model.load_model('C:/data/h5/vision_model2.h5') #모델불러오기
-    # model.load_weights('C:/data/h5/vision_model2_weight.h5') #weight불러오기
+
     result += model.predict_generator(test_generator,verbose=True)/16
 
     # save val_loss

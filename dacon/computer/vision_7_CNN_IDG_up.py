@@ -123,7 +123,7 @@ for train_index, valid_index in skf.split(data,train['digit']) :
     learning_hist = model.fit_generator(train_generator, epochs = 100, validation_data=(valid_generator), verbose = 1 ,callbacks = [es, lr1]) #mc
     
     # predict
-    # model.save('C:/data/h5/vision_model2.h5') #모델저장2
+    # model.save('C:/data/h5/vision_model2.h5') #모델저장2 
     # model.save_weights('C:/data/h5/vision_model2_weight.h5') #weight저장
     # model.load_model('C:/data/h5/vision_model2.h5') #모델불러오기
     # model.load_weights('C:/data/h5/vision_model2_weight.h5') #weight불러오기

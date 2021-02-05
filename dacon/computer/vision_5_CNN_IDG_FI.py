@@ -28,26 +28,25 @@ target = test.drop(['id', 'letter'], axis = 1).values
 
 data = data.reshape(-1, 28, 28, 1)
 target = target.reshape(-1, 28, 28, 1)
-data = data/255.
-target = target/255.
+data = data.astype('float32')/255.
+target = target.astype('float32')/255.
 
-y = train['digit'] # 숨겨진 숫자 값
 
 #ImageDatagenrtator & data augmentation
 idg = ImageDataGenerator(
-    height_shift_range=(-1, 1), 
-    width_shift_range=(-1, 1),
-    rotation_range= 10
+    height_shift_range= (-1, 1), 
+    width_shift_range= (1, -1),
     )
 idg2 = ImageDataGenerator()
 
-es = EarlyStopping(monitor = 'loss', patience = 5, mode = 'auto')
+es = EarlyStopping(monitor = 'loss', patience = 10, mode = 'auto')
 lr1 = ReduceLROnPlateau( monitor='val_loss', factor=0.3, patience=3, verbose=1, mode='auto')
-skf = StratifiedKFold(n_splits= 8, random_state=66, shuffle=True)
+skf = StratifiedKFold(n_splits= 16, random_state=66, shuffle=True)
 
 val_loss_min = []
 result = 0
 nth = 0
+
 
 for train_index, valid_index in skf.split(data,train['digit']) :
 
@@ -58,37 +57,38 @@ for train_index, valid_index in skf.split(data,train['digit']) :
     
     train_generator = idg.flow(x_train,y_train, batch_size = 8)
     valid_generator = idg2.flow(x_valid,y_valid)
-    test_generator = idg2.flow(data,shuffle=False)
+    test_generator = idg2.flow(target, shuffle=False)
 
 
     #모델링 CNN
     inputs = Input(shape = (28,28,1))
-    conv2d = Conv2D(64, (3), strides =1 ,padding = 'SAME', input_shape = (28,28,1))(inputs)
+    conv2d = Conv2D(32, (4), strides =1 ,padding = 'SAME', input_shape = (28,28,1))(inputs)
     btcn = BatchNormalization()(conv2d)
-    conv2d = Conv2D(128, (2), strides =1, padding = 'SAME', activation='relu')(btcn)
+    mp = MaxPooling2D(2)(conv2d)
+
+    conv2d = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(mp)
     btcn = BatchNormalization()(conv2d)
-    conv2d = Conv2D(128, (2), strides =1, padding = 'SAME', activation='relu')(btcn)
+    conv2d = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(btcn)
     mp = MaxPooling2D(2)(conv2d)
     drop = Dropout(0.3)(mp)
 
     btcn = BatchNormalization()(drop)
-    conv2d = Conv2D(128, (2), strides =1, padding = 'SAME', activation='relu')(btcn)
+    conv2d = Conv2D(64, (3), strides =1, padding = 'SAME', activation='relu')(btcn)
     btcn = BatchNormalization()(conv2d)
-    conv2d = Conv2D(64, (2), strides =1, padding = 'SAME', activation='relu')(btcn)
+    conv2d = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(btcn)
     btcn = BatchNormalization()(conv2d)
-    conv2d = Conv2D(32, (2), strides =1, padding = 'SAME', activation='relu')(btcn)
+    conv2d = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(btcn)
     btcn = BatchNormalization()(conv2d)
     mp = MaxPooling2D(2)(conv2d)
     drop = Dropout(0.3)(mp)
     flt = Flatten()(drop)
 
-    dense = Dense(64, activation='relu')(flt)
+    dense = Dense(32, activation='relu')(flt)
     btcn = BatchNormalization()(dense)
-    dense = Dense(32, activation='relu')(btcn)
+    dense = Dense(128, activation='relu')(btcn)
     btcn = BatchNormalization()(dense)
-    dense = Dense(16, activation='relu')(btcn)
+    dense = Dense(64, activation='relu')(btcn)
     btcn = BatchNormalization()(dense)
-    drop = Dropout(0.3)(btcn)
 
     outputs = Dense(10, activation='softmax')(btcn) #분류 수 만큼 output
     model = Model(inputs = inputs, outputs = outputs)
@@ -104,14 +104,14 @@ for train_index, valid_index in skf.split(data,train['digit']) :
     modelpath = 'C:/data/MC/best_cvision_{epoch:02d}-{val_loss:.4f}.hdf5'
     mc = ModelCheckpoint(filepath = modelpath ,save_best_only=True, mode = 'auto')
     model.compile(loss = 'sparse_categorical_crossentropy', optimizer = Adam(lr=0.001,epsilon=None) , metrics = ['acc'])
-    learning_hist = model.fit_generator(train_generator, epochs = 100, validation_data=(valid_generator), verbose = 1 ,callbacks = [es, lr1]) #mc
+    learning_hist = model.fit_generator(train_generator, epochs = 1000, validation_data=(valid_generator), verbose = 1 ,callbacks = [es, lr1]) #mc
     
     # predict
     # model.save('C:/data/h5/vision_model2.h5') #모델저장2
     # model.save_weights('C:/data/h5/vision_model2_weight.h5') #weight저장
     # model.load_model('C:/data/h5/vision_model2.h5') #모델불러오기
     # model.load_weights('C:/data/h5/vision_model2_weight.h5') #weight불러오기
-    result += model.predict_generator(test_generator,verbose=True)/8
+    result += model.predict_generator(test_generator,verbose=True)/16
 
     # save val_loss
     hist = pd.DataFrame(learning_hist.history)
@@ -152,7 +152,7 @@ plt.show()
 #4. 평가, 예측
 submission = pd.read_csv('C:/STUDY/dacon/computer/submission.csv')
 submission['digit'] = result.argmax(1)
-submission.to_csv('C:/STUDY/dacon/computer/2021.02.04.csv',index=False)
+submission.to_csv('C:/STUDY/dacon/computer/2021.02.05.csv',index=False)
 
 
 

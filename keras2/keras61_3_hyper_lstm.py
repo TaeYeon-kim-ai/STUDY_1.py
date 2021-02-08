@@ -4,7 +4,7 @@
 
 import numpy as np
 from tensorflow.keras.models import Sequential, Model
-from tensorflow.keras.layers import Dense, Dropout, Input, Conv2D, MaxPool2D, Flatten, BatchNormalization
+from tensorflow.keras.layers import Dense, Dropout, Input, Conv2D, MaxPool2D, Flatten, BatchNormalization, LSTM
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.optimizers import Adam, Adadelta, Adamax, Adagrad
@@ -18,35 +18,26 @@ from tensorflow.keras.utils import to_categorical
 y_train = to_categorical(y_train)
 y_test = to_categorical(y_test)
 
-x_train = x_train.reshape(-1, 28, 28, 1).astype('float32')/255.
-x_test = x_test.reshape(-1, 28, 28, 1).astype('float32')/255.
+x_train = x_train.reshape(-1, 28, 28).astype('float32')/255.
+x_test = x_test.reshape(-1, 28, 28).astype('float32')/255.
 
 
 #2.모델
 acriv = 'relu'
-node_cnn = 32
+node_lstm = 128
 node_dnn = 128
-kernel = (2,2)
 drop = 0.3
-optimizer = 'adam'
+optimizer = Adam(lr=0.001,epsilon=None)
 
 #레이어로 하러면 레이어 하나층을 변수로 지정한 후 쌓기, 노드 수도 변수로 지정하고 수정할 수 있음.(자유)
 def build_model(drop = 0.5, optimizer = optimizer) :
-    inputs = Input(shape = (x_train.shape[1], x_train.shape[2], x_train.shape[3]), name = 'input')
-    x = Conv2D(node_cnn, kernel_size = (3,3), strides=1, padding = 'SAME' , activation='relu', input_shape = (x_train.shape[1], x_train.shape[2], x_train.shape[3]))(inputs)
-    x = Conv2D(node_cnn, kernel, activation= acriv, padding='SAME')(x)
-    x = BatchNormalization()(x)
-    x = Conv2D(node_cnn, kernel, activation= acriv, padding='SAME')(x)
-    x = BatchNormalization()(x)
-    x = MaxPool2D(2)(x)
-    x = Flatten()(x)
-
+    inputs = Input(shape = (x_train.shape[1], x_train.shape[2]), name = 'input')
+    x = LSTM(node_lstm, activation='relu', input_shape = (x_train.shape[1], x_train.shape[2]))(inputs)
     x = Dense(node_dnn, activation= acriv, name = 'hidden1')(x)
     x = BatchNormalization()(x)
     x = Dense(node_dnn, activation= acriv, name = 'hidden2')(x)
     x = BatchNormalization()(x)
-    x = Dropout(drop)(x)#명시안되있으면 0.51
-            
+    x = Dropout(drop)(x)#명시안되있으면 0.51 
     x = Dense(node_dnn, activation= acriv, name = 'hidden3')(x)
     x = BatchNormalization()(x)
     x = Dense(64, activation= acriv, name = 'hidden4')(x) #레이어 이름 안겹치게 할 것
@@ -73,8 +64,7 @@ model2 = build_model()
 
 #래핑작업 인식할 수 있도록
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier, KerasRegressor #래핑하기 위한 함수 호출
-model2 = KerasClassifier(build_fn=build_model, verbose =1, epochs = 3, 
-                        validation_split = 0.2, callback = [es, lr]) #build_fn = build_model 우리가 빌드하겠다. 위에 정의된 bulid_model을
+model2 = KerasClassifier(build_fn=build_model, verbose =1) #build_fn = build_model 우리가 빌드하겠다. 위에 정의된 bulid_model을
 
 
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
@@ -93,10 +83,30 @@ print("최종스코어 : ", acc)
 #케라스 나왔을 땐 케라스가 머신러닝 배꼇다 케라스가 머신러닝 배꼈으나, 케라스의 모델 자체를 사이킷런에서 쓸 수 있게 따진다.
 #이 모델은 사이킷런 모델이라고 래핑한다. 케라스모델을 래핑한 모델을 RandomizedSearchCV()안에 넣어준다 인식할 수 있게
 
+#튜닝 전
 # {'optimizer': 'adam', 'drop': 0.2, 'batch_size': 50}
 # <tensorflow.python.keras.wrappers.scikit_learn.KerasClassifier object at 0x00000277BBF1CD00>
 # 0.9577833414077759
 # 200/200 [==============================] - 0s 2ms/step - loss: 0.1196 - acc: 0.9639
 # 최종스코어 :  0.9639000296592712
 
+#전체 튜닝 후1 CNN
+# {'optimizer': 'adam', 'drop': 0.1, 'batch_size': 20}
+# <tensorflow.python.keras.wrappers.scikit_learn.KerasClassifier object at 0x000002988624AD30>
+# 0.970466673374176
+# 500/500 [==============================] - 2s 3ms/step - loss: 0.0629 - acc: 0.9811
+# 최종스코어 :  0.9811000227928162
+1
+#전체 튜닝 후2 CNN
+# {'optimizer': 'adam', 'drop': 0.1, 'batch_size': 40}
+# <tensorflow.python.keras.wrappers.scikit_learn.KerasClassifier object at 0x00000192CA49D4C0>
+# 0.9758999943733215
+# 250/250 [==============================] - 7s 27ms/step - loss: 0.0645 - acc: 0.9795
+# 최종스코어 :  0.9794999957084656
 
+#LSTM
+# {'optimizer': 'adam', 'drop': 0.3, 'batch_size': 10}
+# <tensorflow.python.keras.wrappers.scikit_learn.KerasClassifier object at 0x000001ECA9721BE0>
+# 0.9419666727383932
+# 1000/1000 [==============================] - 3s 3ms/step - loss: 0.1565 - acc: 0.9561
+# 최종스코어 :  0.9560999870300293

@@ -5,7 +5,7 @@
 #61카피해서
 #model.cv_results를 붙여서 완성
 import numpy as np
-from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.models import Sequential, Model, load_model
 from tensorflow.keras.layers import Dense, Dropout, Input
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
@@ -67,10 +67,12 @@ print(search.best_estimator_)#전체 중 가장좋은거 선택
 #====================================================
 # 모델저장
 import pickle
-pickle.dump(model2, open('C:/data/keras_save/keras64_save.pickle.data', 'rb'))#save
+#pickle.dump(model2, open('C:/data/keras_save/keras64_save.pickle.data', 'rb'))#save
+search.best_estimator_.model.save('../data/h5/keras64_pickle.h5')
 print('저장완료')
 
 # model3 = pickle.load(open('C:/data/keras_save/keras64_save.pickle.data', 'rb'))#open
+model3 = load_model('../data/h5/keras64_pickle.h5')
 # print('불러오다')
 #====================================================
 
@@ -85,7 +87,6 @@ print(model2.cv_results)
 #이 모델은 사이킷런 모델이라고 래핑한다. 케라스모델을 래핑한 모델을 RandomizedSearchCV()안에 넣어준다 인식할 수 있게
 
 # {'optimizer': 'adam', 'drop': 0.2, 'batch_size': 50}
-# <tensorflow.python.keras.wrappers.scikit_learn.KerasClassifier object at 0x00000277BBF1CD00>
 # 0.9577833414077759
 # 200/200 [==============================] - 0s 2ms/step - loss: 0.1196 - acc: 0.9639
 # 최종스코어 :  0.9639000296592712

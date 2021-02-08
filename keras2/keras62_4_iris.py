@@ -111,3 +111,9 @@ print("최종스코어 : ", acc)
 # -20.171435356140137
 # 13/13 [==============================] - 0s 462us/step - loss: 18.3487 - mse: 18.3487
 # 최종스코어 :  -18.348678588867188
+
+# {'optimizer': 'rmsprop', 'node_ls': 64, 'node_dnn': 64, 'lr': 0.0001, 'drop': 0.3, 'batch_size': 32, 'acriv': 'e'}
+# <tensorflow.python.keras.wrappers.scikit_learn.KerasClassifier object at 0x00000206E7DDCCD0>
+# 0.399999996026357
+# 1/1 [==============================] - 0s 1ms/step - loss: 1.1557 - acc: 0.2000
+# 최종스코어 :  0.20000000298023224

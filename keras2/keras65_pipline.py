@@ -7,7 +7,10 @@ from tensorflow.keras.layers import Dense, Dropout, Input
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.optimizers import Adam, Adadelta, Adamax, Adagrad
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, RandomizedSearchCV, cross_val_score, KFold
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
@@ -38,30 +41,32 @@ def build_model(drop = 0.5, optimizer = 'adam') :
 
     return model
 
-def create_hyperparameters() : 
-    batches = [10, 20, 30, 40, 50]
-    oprimizers = ['rmsprop', 'adam', 'adadelta']
-    dropout = [0.1, 0.2, 0.3]
-    return {"batch_size" : batches, "optimizer" : oprimizers, "drop" : dropout}
+def create_hyperparameters():
+    batches = [16]
+    optimizers = ['adam']
+    dropout = [0.3]
+    # return {"kerasclassifier__batch_size" : batches, "kerasclassifier__optimizer" : optimizers, "kerasclassifier__drop" : dropout}
+    return {"kc__batch_size" : batches, "kc__optimizer" : optimizers, "kc__drop" : dropout}
 
 hyperparameters = create_hyperparameters() #정의된 하이퍼파리미터를 hyperparameters로 저장
 model2 = build_model()
 
 #래핑작업 인식할 수 있도록
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier, KerasRegressor #래핑하기 위한 함수 호출
-from sklearn.datasets import make_classification
-from sklearn.pipeline import Pipeline
-model2 = KerasClassifier(build_fn=build_model, verbose =1) #build_fn = build_model 우리가 빌드하겠다. 위에 정의된 bulid_model을
-
-
+from sklearn.datasets import make_classification 
+from sklearn.pipeline import Pipeline, make_pipeline #파이프라인 연결
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
-search = RandomizedSearchCV(model2, hyperparameters, cv = 3)
-#search = GridSearchCV(build_model, hyperparameters, cv = 3)
+kfold = KFold(n_splits=3, random_state=42)
 
+model2 = KerasClassifier(build_fn=build_model, epochs = 2, batch_size = 16, verbose =1) #build_fn = build_model 우리가 빌드하겠다. 위에 정의된 bulid_model을
+#pipe = make_pipeline(StandardScaler(), model2)
+pipe = Pipeline([('scaler', MinMaxScaler()),('kc',model2)])
+search = RandomizedSearchCV(pipe, hyperparameters, cv = kfold)
+#search = GridSearchCV(build_model, hyperparameters, cv = 3)
 
 search.fit(x_train, y_train, verbose = 1)
 print(search.best_params_)#내가 선택한 파라미터 중 가장 좋은거 빼기
-print(search.best_estimator_)#전체 중 가장좋은거 선택
+#print(search.best_estimator_)#전체 중 가장좋은거 선택#별로 인식 X 케라스인식X
 print(search.best_score_) #아래 스코어랑 다르니 비교
 acc = search.score(x_test, y_test)
 print("최종스코어 : ", acc)

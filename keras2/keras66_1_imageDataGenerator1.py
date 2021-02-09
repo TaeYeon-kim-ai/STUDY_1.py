@@ -1,9 +1,5 @@
 import numpy as np
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, Dense, MaxPool2D, AveragePooling2D, AvgPool2D, Dropout, Flatten, BatchNormalization
-
-
 #http://naver.me/5B1Y91UT
 #이미지 / 데이터로 전처리 / 증폭가능하게 //
 
@@ -32,8 +28,8 @@ test_datagen = ImageDataGenerator(rescale=1./255) #전처리만 함 0~1사이로
 # **flow 또는 flow_from_directory    #이미지 데이터 제너레이터를 통해 증폭하고,  flow로 수치화하고 데이터화 # tensorflow시험 3번문제
 xy_train = train_datagen.flow_from_directory( #디렉토리채로 이미지 가져오기  //csv로 되있는걸 가져오는건 flow만 하면 됨
     '../data/image/brain/train',#1. 경로
-    target_size = (64, 64), #2. 아직증폭안됨 = 타겟사이즈(임의로 정해도 됨)    shape(80, 150, 150, 1) : 0~1사이로 들어가 있음  //y = 0(라벨은 0이지만 shape = (80, ))
-    batch_size = 5, #배치사이즈     = test : (60, 150, 150, 1)  // 
+    target_size = (150, 150), #2. 아직증폭안됨 = 타겟사이즈(임의로 정해도 됨)    shape(80, 150, 150, 1) : 0~1사이로 들어가 있음  //y = 0(라벨은 0이지만 shape = (80, ))
+    batch_size = 160, #배치사이즈     = test : (60, 150, 150, 1)  // 
     class_mode = 'binary' #모드 #y값은 앞에있는애는 0 뒤에있는애는 1 맞고 틀림 느낌
 )
 # Found 160 images belonging to 2 classes.
@@ -44,72 +40,38 @@ xy_train = train_datagen.flow_from_directory( #디렉토리채로 이미지 가�
 #xy로 한 이유는 .flow_from_directory통과하면 x data와 y data가 생성됨
 xy_test = test_datagen.flow_from_directory( #디렉토리채로 이미지 가져오기  //csv로 되있는걸 가져오는건 flow만 하면 됨 
     '../data/image/brain/test',#1. 경로
-    target_size = (64, 64), #2. 아직증폭안됨 = 타겟사이즈(임의로 정해도 됨)    shape(80, 150, 150, 1) : 0~1사이로 들어가 있음  //y = 0(라벨은 0이지만 shape = (80, ))
+    target_size = (150, 150), #2. 아직증폭안됨 = 타겟사이즈(임의로 정해도 됨)    shape(80, 150, 150, 1) : 0~1사이로 들어가 있음  //y = 0(라벨은 0이지만 shape = (80, ))
     batch_size = 5, #배치사이즈     = test : (60, 150, 150, 1)  // 
     class_mode = 'binary' #모드 #y값은 앞에있는애는 0 뒤에있는애는 1 맞고 틀림 느낌 #폴더구조 자체로 라벨링이 먹힌다.
 )
 # Found 120 images belonging to 2 classes.
 
-#모델링
-model = Sequential()
-model.add(Conv2D(64, (3,3), input_shape = (64, 64, 3)))
-model.add(BatchNormalization())
-model.add(Conv2D(64, (3,3)))
-model.add(BatchNormalization())
-model.add(MaxPool2D(2))
-model.add(Conv2D(128, (3,3)))
-model.add(Dropout(0.2))
-model.add(Flatten())
-model.add(Dense(128, activation='relu'))
-model.add(BatchNormalization())
-model.add(Dropout(0.2))
-model.add(Dense(64, activation='relu'))
-model.add(BatchNormalization())
-model.add(Dense(16, activation='relu'))
-model.add(Dense(1, activation='sigmoid'))
+print(xy_train)
+# <tensorflow.python.keras.preprocessing.image.DirectoryIterator object at 0x00000280E3B18550>
+print(xy_train[0])
+# [0.06339686, 0.06339686, 0.06339686], # x 5개 
+# [0.06285135, 0.06285135, 0.06285135]]]], #y 5개 : dtype=float32), array([1., 0., 0., 0., 1.], dtype=float32))
+#0번쨰에 0번쨰 : x 값1개, y값 1개
+print(xy_train[0][0]) #x만 나옴
+print(xy_train[0][0].shape) # x (5, 150, 150, 3) #5 : batch_size 5니까 5개 나옴 //  150, 150 : target_size  // 3 : 컬러여부
+print(xy_train[0][1]) # y [0. 1. 1. 1. 1.]
+# print(xy_train[0][1].shape) #y (5,)
+# print(xy_train[15][1]) # y (10,)) #[1. 1. 1. 0. 0. 1. 1. 1. 1. 0.]
+
+#활용
+# x_train[100 < x_train] = 253
+# x_train[x_train < 100] = 0
 
 
-#훈련
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc'])
-
-hist = model.fit_generator(xy_train, 
-    steps_per_epoch=32, 
-    epochs=50, 
-    validation_data=xy_test, 
-    validation_steps=4
-    )
 
 
-#평가
-loss = model.evaluate(xy_test)
-print('loss : ', loss)
 
-#시각화
-acc = hist.history['acc']
-val_acc = hist.history['val_acc']
-loss = hist.history['loss']
-val_loss = hist.history['val_loss']
 
-#시각화 할 것
-import matplotlib.pyplot as plt
-print("acc : ", acc[-1])
-print("val_acc : ", val_acc[-1])
 
-epochs = range(len(acc))
 
-plt.plot(epochs, acc, 'bo', label='Training acc')
-plt.plot(epochs, val_acc, 'b', label='Validation acc')
-plt.title('Training and validation accuracy')
-plt.legend()
 
-plt.figure()
 
-plt.plot(epochs, loss, 'bo', label='Training loss')
-plt.plot(epochs, val_loss, 'b', label='Validation loss')
-plt.title('Training and validation loss')
-plt.legend()
 
-plt.show()
 
 
 

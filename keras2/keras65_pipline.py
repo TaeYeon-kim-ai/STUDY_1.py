@@ -49,7 +49,6 @@ def create_hyperparameters():
     return {"kc__batch_size" : batches, "kc__optimizer" : optimizers, "kc__drop" : dropout}
 
 hyperparameters = create_hyperparameters() #정의된 하이퍼파리미터를 hyperparameters로 저장
-model2 = build_model()
 
 #래핑작업 인식할 수 있도록
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier, KerasRegressor #래핑하기 위한 함수 호출

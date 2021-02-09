@@ -121,7 +121,7 @@ for train_index, valid_index in skf.split(data,train['digit']) :
     modelpath = 'C:/data/MC/best_cvision_{epoch:02d}-{val_loss:.4f}.hdf5'
     mc = ModelCheckpoint(filepath = modelpath ,save_best_only=True, mode = 'auto')
     model.compile(loss = 'sparse_categorical_crossentropy', optimizer = Adam(lr=0.001,epsilon=None) , metrics = ['acc'])
-    earning_hist = model.fit_generator(train_generator, epochs = 1000, validation_data=(valid_generator), verbose = 1 ,callbacks = [es, lr1]) #mc
+    learning_hist = model.fit_generator(train_generator, epochs = 1000, validation_data=(valid_generator), verbose = 1 ,callbacks = [es, lr1]) #mc
 
     result += model.predict_generator(test_generator,verbose=True)/16
 

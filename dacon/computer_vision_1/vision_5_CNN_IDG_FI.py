@@ -14,8 +14,8 @@ from tensorflow.python.eager.monitoring import Sampler
 warnings.filterwarnings("ignore")
 
 #1. 데이터
-train = pd.read_csv('C:/STUDY/dacon/computer/train.csv')
-test = pd.read_csv('C:/STUDY/dacon/computer/test.csv')
+train = pd.read_csv('C:/STUDY_1.py/dacon/computer/train.csv')
+test = pd.read_csv('C:/STUDY_1.py/dacon/computer/test.csv')
 
 print(train.shape) # (2048, 787)
 print(test.shape) # (20480, 786)
@@ -162,9 +162,9 @@ plt.show()
 
 
 #4. 평가, 예측
-submission = pd.read_csv('C:/STUDY/dacon/computer/submission.csv')
+submission = pd.read_csv('C:/STUDY_1.py/dacon/computer/submission.csv')
 submission['digit'] = result.argmax(1)
-submission.to_csv('C:/STUDY/dacon/computer/2021.02.05.csv',index=False)
+submission.to_csv('C:/STUDY_1.py/dacon/computer/2021.02.05.csv',index=False)
 
 
 

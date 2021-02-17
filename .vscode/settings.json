@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "C:\\Users\\tykim\\anaconda3\\envs\\tykim\\python.exe"
+    "python.pythonPath": "C:\\Users\\tykim\\anaconda3\\envs\\tykim\\python.exe",
+    "git.ignoreLimitWarning": true
 }

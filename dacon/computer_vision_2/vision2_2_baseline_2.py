@@ -96,8 +96,8 @@ trainset = MnistDataset('C:/data/vision_2/dirty_mnist_2nd_noise_clean', 'C:/data
 testset = MnistDataset('C:/data/vision_2/test_dirty_mnist_2nd_noise_clean', 'C:/data/vision_2/sample_submission.csv', transforms_test)
 
 # 입력 데이터 셋의 배치사이즈를 정함 병렬 작업할 프로세스의 갯수를 정함
-train_loader = DataLoader(trainset, batch_size=8, num_workers=8)
-test_loader = DataLoader(testset, batch_size=8, num_workers=6)
+train_loader = DataLoader(trainset, batch_size=32, num_workers=8)
+test_loader = DataLoader(testset, batch_size=16, num_workers=6)
 
 # 모델 x를 반환하는 클래스
 class MnistModel(nn.Module):
@@ -119,7 +119,7 @@ class MnistModel(nn.Module):
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = MnistModel().to(device)
 
-print(summary(model, input_size=(1, 3, 128, 128), verbose=0))
+print(summary(model, input_size=(1, 3, 64, 64), verbose=0))
 
 # 실행 하는 곳이 메인인 경우
 if __name__ == '__main__':
@@ -129,22 +129,17 @@ if __name__ == '__main__':
     criterion = nn.MultiLabelSoftMarginLoss()
 
     # 에포치 10주고 모델을 트레인으로 변환
-    num_epochs = 64
+    num_epochs = 20
     model.train()
 
     # 에포치 만큼 반복
     for epoch in range(num_epochs):
             # 배치 사이즈 만큼 스탭을 진행함
             for i, (images, targets) in enumerate(train_loader):
-
-                # 미분 값 초기화
                 optimizer.zero_grad()
-                # 데이터셋을 프로세스에 입력함
                 images = images.to(device)
                 targets = targets.to(device)
-                # 모델에 인풋을 넣고 아웃풋을 출력함
                 outputs = model(images)
-                # 로스를 확인함
                 loss = criterion(outputs, targets)
 
                 # 로스 역전파
@@ -152,7 +147,6 @@ if __name__ == '__main__':
                 # 매개변수 갱신함
                 optimizer.step()
             
-                # 10에포치 마다 로스와 액큐러시를 출력함
                 if (i+1) % 10 == 0:
                     outputs = outputs > 0.5
                     acc = (outputs == targets).float().mean()
@@ -160,17 +154,10 @@ if __name__ == '__main__':
 
 if __name__ == '__main__':
 
-    # 평가 폴더를 열음
     submit = pd.read_csv('C:/data/vision_2/sample_submission.csv')
-
-    # 이벨류 모드로 전환
     model.eval()
-
-    # 베치사이즈는 테스트로더 베치사이즈
     batch_size = test_loader.batch_size
-    # 인덱스 0부터 시작
     batch_index = 0
-    # 이벨류 모드를 테스트 셋으로 진행하고 파일에 입력함
     for i, (images, targets) in enumerate(test_loader):
         images = images.to(device)
         targets = targets.to(device)

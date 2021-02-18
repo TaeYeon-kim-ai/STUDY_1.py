@@ -41,7 +41,7 @@ idg2 = ImageDataGenerator()
 
 es = EarlyStopping(monitor = 'loss', patience = 10, mode = 'auto')
 lr1 = ReduceLROnPlateau( monitor='val_loss', factor=0.3, patience=3, verbose=1, mode='auto')
-skf = StratifiedKFold(n_splits= 16, random_state=66, shuffle=True)
+skf = StratifiedKFold(n_splits= 10, random_state=66, shuffle=True)
 
 val_loss_min = []
 result = 0
@@ -55,7 +55,7 @@ for train_index, valid_index in skf.split(data,train['digit']) :
     y_train = train['digit'][train_index]
     y_valid = train['digit'][valid_index]
     
-    train_generator = idg.flow(x_train,y_train, batch_size = 8)
+    train_generator = idg.flow(x_train,y_train, batch_size = 64)
     valid_generator = idg2.flow(x_valid,y_valid)
     test_generator = idg2.flow(target, shuffle=False)
 

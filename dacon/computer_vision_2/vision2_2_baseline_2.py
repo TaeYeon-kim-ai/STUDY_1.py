@@ -96,8 +96,8 @@ trainset = MnistDataset('C:/data/vision_2/dirty_mnist_2nd_noise_clean', 'C:/data
 testset = MnistDataset('C:/data/vision_2/test_dirty_mnist_2nd_noise_clean', 'C:/data/vision_2/sample_submission.csv', transforms_test)
 
 # 입력 데이터 셋의 배치사이즈를 정함 병렬 작업할 프로세스의 갯수를 정함
-train_loader = DataLoader(trainset, batch_size=64, num_workers=8)
-test_loader = DataLoader(testset, batch_size=64, num_workers=6)
+train_loader = DataLoader(trainset, batch_size=128, num_workers=8)
+test_loader = DataLoader(testset, batch_size=32, num_workers=6)
 
 # 모델 x를 반환하는 클래스
 class MnistModel(nn.Module):
@@ -119,7 +119,7 @@ class MnistModel(nn.Module):
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = MnistModel().to(device)
 
-print(summary(model, input_size=(1, 3, 64, 64), verbose=0))
+print(summary(model, input_size=(1, 3, 128, 128), verbose=0))
 
 # 실행 하는 곳이 메인인 경우
 if __name__ == '__main__':
@@ -168,7 +168,7 @@ if __name__ == '__main__':
             outputs.long().squeeze(0).detach().cpu().numpy()
 
     # 저장함
-    submit.to_csv('C:/data/vision_2/submission_210224_2.csv', index=False)
+    submit.to_csv('C:/data/vision_2/submission_210225_1.csv', index=False)
 
     del images
     del targets

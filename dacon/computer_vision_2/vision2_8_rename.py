@@ -8,27 +8,14 @@ import os
 #os.rename(src, dst) 메서드는 파일 또는 디렉토리(폴더) src의 이름을 dst로 변경.
 
 #train_nomal
-file_path = 'C:/data/vision_2/mnist_data/train_image/noise' 
+file_path = 'C:/data/vision_2/mnist_data/train_image/clean' 
 file_names = os.listdir(file_path)
 file_names
 
 i = 1 #1부터 변경할 것임
 for name in file_names: 
     src = os.path.join(file_path, name)
-    dst = str(i) + '.jpg'
-    dst = os.path.join(file_path, dst)
-    os.rename(src, dst)
-    i += 1
-
-#train_ad
-file_path = 'C:/data/fish_data/train2_fish_illness' 
-file_names = os.listdir(file_path)
-file_names
-
-i = 1 #1부터 변경할 것임
-for name in file_names: 
-    src = os.path.join(file_path, name)
-    dst = str(i) + '.jpg'
+    dst = str(i) + '.png'
     dst = os.path.join(file_path, dst)
     os.rename(src, dst)
     i += 1

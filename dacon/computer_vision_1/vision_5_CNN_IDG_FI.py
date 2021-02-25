@@ -9,21 +9,22 @@ from keras.layers import *
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from keras.optimizers import Adam
 import warnings
-
+from tensorflow.keras.optimizers import Adam, Adadelta, Adamax, Adagrad
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.python.eager.monitoring import Sampler
 warnings.filterwarnings("ignore")
 
 #1. 데이터
-train = pd.read_csv('C:/STUDY_1.py/dacon/computer/train.csv')
-test = pd.read_csv('C:/STUDY_1.py/dacon/computer/test.csv')
+train = pd.read_csv('C:/data/vision_2/mnist_data/train.csv')
+test = pd.read_csv('C:/data/vision_2/mnist_data/test.csv')
 
 print(train.shape) # (2048, 787)
 print(test.shape) # (20480, 786)
 
 #print(train['digit'].value_counts())
 
-data = train.drop(['id', 'digit', 'letter'], axis=1).values
-target = test.drop(['id', 'letter'], axis = 1).values
+data = train.drop(['id', 'digit'], axis=1).values
+target = test.drop(['id'], axis = 1).values
 
 
 data = data.reshape(-1, 28, 28, 1)
@@ -47,9 +48,8 @@ val_loss_min = []
 result = 0
 nth = 0
 
-
 for train_index, valid_index in skf.split(data,train['digit']) :
-
+    
     x_train = data[train_index]
     x_valid = data[valid_index]    
     y_train = train['digit'][train_index]
@@ -62,67 +62,29 @@ for train_index, valid_index in skf.split(data,train['digit']) :
 
     #모델링 CNN
     inputs = Input(shape = (28,28,1))
-    c = Conv2D(32, (4), strides =1 ,padding = 'SAME', kernel_initializer='he_normal', input_shape = (28,28,1))(inputs)
-    c = BatchNormalization()(c)
-    c = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(c)
-    c = BatchNormalization()(c)
-    c = MaxPooling2D(2)(c)
-    c = Dropout(0.4)(c)
+    x = Conv2D(32, (4), strides =1 ,padding = 'SAME', kernel_initializer='he_normal', input_shape = (28,28,1))(inputs)
+    x = BatchNormalization()(x)
+    x = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(x)
+    x = MaxPooling2D(2)(x)
+    x = BatchNormalization()(x)
 
-    c = BatchNormalization()(c)
-    c = Conv2D(64, (3), strides =1, padding = 'SAME', activation='relu')(c)
-    c = BatchNormalization()(c)
-    c = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(c)
-    c = BatchNormalization()(c)
-    c = MaxPooling2D(2)(c)
-    c = Dropout(0.4)(c)
-    
-    c = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(c)
-    c = BatchNormalization()(c)
-    c = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(c)
-    c = BatchNormalization()(c)
-    c = Conv2D(64, (3), strides =1, padding = 'SAME', activation='relu')(c)
-    c = BatchNormalization()(c)
-    c = MaxPooling2D(2)(c)
-    c = Dropout(0.4)(c)
+    x = Flatten()(x)
+    x = Dense(64, activation='relu')(x)
+    x = BatchNormalization()(x)
+    x = Dropout(0.2)(x)
 
-    c = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(c)
-    c = BatchNormalization()(c)
-    c = Conv2D(32, (3), strides =1, padding = 'SAME', activation='relu')(c)
-    c = BatchNormalization()(c)
-    c = Conv2D(64, (3), strides =1, padding = 'SAME', activation='relu')(c)
-    c = BatchNormalization()(c)
-    c = GlobalAveragePooling2D()(c)
-    c = Dropout(0.4)(c)
-
-    c = Flatten()(c)
-
-    c = Dense(32, activation='relu')(c)
-    c = BatchNormalization()(c)
-    c = Dense(32, activation='relu')(c)
-    c = BatchNormalization()(c)
-    c = Dense(64, activation='relu')(c)
-    c = BatchNormalization()(c)
-    c = Dense(64, activation='relu')(c)
-    c = BatchNormalization()(c)
-    c = Dropout(0.2)(c)
-
-    outputs = Dense(10, activation='softmax')(c) #분류 수 만큼 output
+    outputs = Dense(26, activation='softmax')(x) #분류 수 만큼 output
     model = Model(inputs = inputs, outputs = outputs)
 
-
-# model.save('C:/data/h5/vision_model1.h5')#모델저장
+model.save('C:/data/h5/vision_model1.h5')#모델저장
 # model = load_model('C:/data/h5/vision_model1.h5')#모델로드
 
 
 #3. 훈련
-    from tensorflow.keras.optimizers import Adam, Adadelta, Adamax, Adagrad
-    from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
     modelpath = 'C:/data/MC/best_cvision_{epoch:02d}-{val_loss:.4f}.hdf5'
     mc = ModelCheckpoint(filepath = modelpath ,save_best_only=True, mode = 'auto')
     model.compile(loss = 'sparse_categorical_crossentropy', optimizer = Adam(lr=0.001,epsilon=None) , metrics = ['acc'])
     learning_hist = model.fit_generator(train_generator, epochs = 1000, validation_data=(valid_generator), verbose = 1 ,callbacks = [es, lr1]) #mc
-
     result += model.predict_generator(test_generator,verbose=True)/16
 
     # save val_loss
@@ -161,36 +123,7 @@ plt.show()
 # model.load_weights('C:/data/h5/vision_model2_weight.h5') #weight불러오기
 
 
-#4. 평가, 예측
-submission = pd.read_csv('C:/STUDY_1.py/dacon/computer/submission.csv')
-submission['digit'] = result.argmax(1)
-submission.to_csv('C:/STUDY_1.py/dacon/computer/2021.02.05.csv',index=False)
-
-
-
-#=================================================================
-#이미지 보기 # 3
-# plt.imshow(data[20].reshape(28,28)) # 3
-# plt.show()
-
-
-# sample_data = data[100].copy()
-# sample = expand_dims(sample_data,0)
-# sample_datagen = ImageDataGenerator(
-#     height_shift_range=(-1,1), 
-#     width_shift_range=(-1,1), 
-#     rotation_range = 10,
-#     horizontal_flip = True
-#     )
-
-# sample_generator = sample_datagen.flow(sample, batch_size=1)
-
-# plt.figure(figsize = (16,10)) #그림출력
-
-# for i in range(9) : 
-#     plt.subplot(3,3,i+1) #3,3으로 첫번째부터 삽입
-#     sample_batch = sample_generator.next()
-#     sample_image=sample_batch[0]
-#     plt.imshow(sample_image.reshape(28,28))
-
-# plt.show()
+# #4. 평가, 예측
+# submission = pd.read_csv('C:/STUDY_1.py/dacon/computer/submission.csv')
+# submission['digit'] = result.argmax(1)
+# submission.to_csv('C:/STUDY_1.py/dacon/computer/2021.02.05.csv',index=False)

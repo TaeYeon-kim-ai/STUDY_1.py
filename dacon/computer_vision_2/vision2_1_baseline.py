@@ -1,17 +1,3 @@
-# import pandas as pd
-# import numpy as np
-# import matplotlib.pyplot as plt
-# import cv2
-# from tqdm import tqdm # 진행 상태 바 %로 나타내줌 #pip install tqdm for문  in에 해당하는 부분 ()로 감싸기 , desc="lotto", mininterval=1
-# import imutils #OpenCV기능 보완  #pip install imutils  #https://enjoyimageprocessing.tistory.com/entry/imutils-package-%EA%B8%B0%EB%8A%A5
-# import os #OpenCV getcwd() 현재경로 확인
-# from PIL import Image #  pip install Pillow 이미지 파일 읽고 쓰기
-
-# import torch
-# import torch.optim as optim #옵티마이저 정의
-# from torch import nn, Tensor #nn : 모델정의, 다차원 행렬
-# from torch.utils.data import Dataset, DataLoader #방대한 데이터 처리. 
-# from torchinfo import summary
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt

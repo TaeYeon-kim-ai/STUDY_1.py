@@ -2,14 +2,14 @@ import csv
 from PIL import Image
 import numpy as np
 import string
-import os
 
-csv_File_Path = 'C:/data/vision_2/mnist_data/train.csv'
+
+csv_File_Path = #Your downloded csv file path
 
 count = 1
 last_digit_Name =  None
 
-image_Folder_Path = 'C:/data/vision_2/mnist_data/train_image/clean2'
+image_Folder_Path = #your path to target folder to save images. Note: Path should have 26 empty folder with name as alphabets
 
 Alphabet_Mapping_List = list(string.ascii_uppercase)
 

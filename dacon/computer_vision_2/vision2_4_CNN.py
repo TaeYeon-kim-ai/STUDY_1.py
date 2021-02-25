@@ -74,23 +74,19 @@ def model():
 # model = load_model('C:/data/h5/vision_model1.h5')#모델로드
 
 #3훈련
-alphabet = ['z']  #,,'c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'
 
 optimizers = Adam(lr=0.001,epsilon=None)
-for i in alphabet :
-    y_train = y_train.loc[:,i]
-    y_val = y_val.loc[:,i]
-    model = model()
-    mc = ModelCheckpoint('C:/data/MC/best_cvision2_{epoch:02d}-{val_loss:.4f}.hdf5', save_best_only=True, mode = 'auto')
-    es = EarlyStopping(monitor='loss', patience = 20, mode='auto')
-    lr = ReduceLROnPlateau( monitor='val_loss', factor=0.3, patience=10, verbose=1, mode='auto')
-    model.fit(x_train, y_train, epochs = 1, batch_size = 64 ,validation_data = (x_val, y_val), callbacks=[es, lr, mc])
+model = model()
+mc = ModelCheckpoint('C:/data/MC/best_cvision2_{epoch:02d}-{val_loss:.4f}.hdf5', save_best_only=True, mode = 'auto')
+es = EarlyStopping(monitor='loss', patience = 20, mode='auto')
+lr = ReduceLROnPlateau( monitor='val_loss', factor=0.3, patience=10, verbose=1, mode='auto')
+model.fit(x_train, y_train, epochs = 1, batch_size = 64 ,validation_data = (x_val, y_val), callbacks=[es, lr, mc])
 
-    y_pred = model.predict(x_test)
-    print(y_pred)
-    y_pred_sub = np.where(y_pred < 0.5, 0, 1)
-    print(y_pred_sub)
-    submission[i] = y_pred_sub
+y_pred = model.predict(x_test)
+print(y_pred)
+y_pred_sub = np.where(y_pred < 0.5, 0, 1)
+print(y_pred_sub)
+submission[i] = y_pred_sub
     
 submission.to_csv('C:/data/vision_2/submission_2021.02.13_z.csv', index=False)
 

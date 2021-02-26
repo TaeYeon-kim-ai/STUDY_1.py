@@ -36,7 +36,7 @@ test_datagen = ImageDataGenerator(rescale=1./255)
 #xy_train
 xy_train = train_datagen.flow_from_directory(
     'C:/data/vision_2/dirty_mnist_2nd_noise_clean',
-    target_size = (256, 256), 
+    target_size = (128, 128), 
     batch_size = 50000, 
     class_mode = 'binary',
     subset="training"
@@ -45,7 +45,7 @@ xy_train = train_datagen.flow_from_directory(
 #xy로 한 이유는 .flow_from_directory통과하면 x data와 y data가 생성됨
 xy_test = test_datagen.flow_from_directory(
     'C:/data/vision_2/test_dirty_mnist_2nd_noise_clean',
-    target_size = (256, 256),
+    target_size = (128, 128),
     batch_size = 5000, 
     class_mode = 'binary'
 )

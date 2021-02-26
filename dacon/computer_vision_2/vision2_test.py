@@ -28,7 +28,7 @@ submission = pd.read_csv('C:/data/vision_2/sample_submission.csv')
 x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, train_size = 0.8, shuffle= True, random_state=256)
 print(x_train.shape, y_train.shape)
 print(x_val.shape, y_val.shape)
-'''
+
 
 inputs = Input(shape=(256, 256, 3)) 
 x = Conv2D(128, 4, activation='relu')(inputs)
@@ -69,6 +69,3 @@ submission[i] = y_pred_sub
     
 submission.to_csv('C:/data/vision_2/submission_2021.02.25_1.csv', index=False)
 
-
-
-'''

@@ -2,14 +2,14 @@ import csv
 from PIL import Image
 import numpy as np
 import string
+import os 
 
-
-csv_File_Path = #Your downloded csv file path
+csv_File_Path = 'C:/data/vision_2/mnist_data/train.csv'
 
 count = 1
 last_digit_Name =  None
 
-image_Folder_Path = #your path to target folder to save images. Note: Path should have 26 empty folder with name as alphabets
+image_Folder_Path = 'C:/data/vision_2/mnist_data/train_image/clean2'
 
 Alphabet_Mapping_List = list(string.ascii_uppercase)
 
@@ -18,12 +18,12 @@ for alphabet in Alphabet_Mapping_List:
     if not os.path.exists(path):
         os.makedirs(path)
 
-with open(csv_File_Path, newline='') as csvfile:
+with open(csv_File_Path, newline='') as csvfile: #csv파일 불러오기
     reader = csv.reader(csvfile, delimiter=',', quotechar='|')
     count = 0
     for row in reader:
         digit_Name = row.pop(0)
-        image_array = np.asarray(row)
+        image_array = np.asarray(row[0])
         image_array = image_array.reshape(28, 28)
         new_image = Image.fromarray(image_array.astype('uint8'))
 

@@ -22,8 +22,8 @@ print(test.shape) # (20480, 786)
 
 #print(train['digit'].value_counts())
 
-data = train.drop(['id', 'digit', 'letter'], axis=1).values
-target = test.drop(['id', 'letter'], axis = 1).values
+data = train.drop(['id', 'digit'], axis=1).values
+target = test.drop(['id'], axis = 1).values
 
 
 #이미지 보기 # 3
@@ -41,28 +41,6 @@ y = train['digit'] # 숨겨진 숫자 값
 idg = ImageDataGenerator(height_shift_range=(-1, 1), width_shift_range=(-1,1))
 idg2 = ImageDataGenerator()
 
-# sample_data = data[100].copy()
-# sample = expand_dims(sample_data,0)
-# sample_datagen = ImageDataGenerator(
-#     height_shift_range=(-1,1), 
-#     width_shift_range=(-1,1), 
-#     rotation_range = 10,
-#     horizontal_flip = True
-#     )
-
-# sample_generator = sample_datagen.flow(sample, batch_size=1)
-
-# plt.figure(figsize = (16,10)) #그림출력
-
-# for i in range(9) : 
-#     plt.subplot(3,3,i+1) #3,3으로 첫번째부터 삽입
-#     sample_batch = sample_generator.next()
-#     sample_image=sample_batch[0]
-#     plt.imshow(sample_image.reshape(28,28))
-# plt.show()
-
-#학습 테스트 분할하기위한 인덱스 
-# 하나의 샘플에서 가장 작은것, 가장큰것 다른 테스트 세트 생성
 skf = StratifiedKFold(n_splits= 8, random_state=77, shuffle=True)
 
 val_loss_min = []

@@ -26,7 +26,6 @@ print(test.shape) # (20480, 786)
 data = train.drop(['id', 'digit'], axis=1).values
 target = test.drop(['id'], axis = 1).values
 
-
 data = data.reshape(-1, 28, 28, 1)
 target = target.reshape(-1, 28, 28, 1)
 data = data.astype('float32')/255.
@@ -127,3 +126,4 @@ plt.show()
 # submission = pd.read_csv('C:/STUDY_1.py/dacon/computer/submission.csv')
 # submission['digit'] = result.argmax(1)
 # submission.to_csv('C:/STUDY_1.py/dacon/computer/2021.02.05.csv',index=False)
+'''

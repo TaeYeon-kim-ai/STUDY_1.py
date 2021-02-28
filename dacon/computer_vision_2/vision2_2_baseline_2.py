@@ -92,12 +92,12 @@ transforms_test = transforms.Compose([
 ])
 
 # 파일의 이미지를 정규화하고 타겟을 각각 셋에 담고 초기화함
-trainset = MnistDataset('C:/data/vision_2/dirty_mnist_2nd_noise_clean', 'C:/data/vision_2/dirty_mnist_2nd_answer.csv', transforms_train)
-testset = MnistDataset('C:/data/vision_2/test_dirty_mnist_2nd_noise_clean', 'C:/data/vision_2/sample_submission.csv', transforms_test)
+trainset = MnistDataset('C:/data/vision_2/dirty_mnist_2nd', 'C:/data/vision_2/dirty_mnist_2nd_answer.csv', transforms_train)
+testset = MnistDataset('C:/data/vision_2/test_dirty_mnist_2nd', 'C:/data/vision_2/sample_submission.csv', transforms_test)
 
 # 입력 데이터 셋의 배치사이즈를 정함 병렬 작업할 프로세스의 갯수를 정함
-train_loader = DataLoader(trainset, batch_size=16, num_workers=8)
-test_loader = DataLoader(testset, batch_size=8, num_workers=6)
+train_loader = DataLoader(trainset, batch_size=64, num_workers=8)
+test_loader = DataLoader(testset, batch_size=16, num_workers=6)
 
 # 모델 x를 반환하는 클래스
 class MnistModel(nn.Module):
@@ -119,7 +119,7 @@ class MnistModel(nn.Module):
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = MnistModel().to(device)
 
-print(summary(model, input_size=(1, 3, 256, 256), verbose=0))
+print(summary(model, input_size=(1, 3, 64, 64), verbose=0))
 
 # 실행 하는 곳이 메인인 경우
 if __name__ == '__main__':
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     criterion = nn.MultiLabelSoftMarginLoss()
 
     # 에포치 10주고 모델을 트레인으로 변환
-    num_epochs = 64
+    num_epochs = 5
     model.train()
 
     # 에포치 만큼 반복
@@ -168,7 +168,7 @@ if __name__ == '__main__':
             outputs.long().squeeze(0).detach().cpu().numpy()
 
     # 저장함
-    submit.to_csv('C:/data/vision_2/submission_210226_2.csv', index=False)
+    submit.to_csv('C:/data/vision_2/submission_210227_1.csv', index=False)
 
     del images
     del targets

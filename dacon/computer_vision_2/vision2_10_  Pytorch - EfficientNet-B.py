@@ -21,10 +21,10 @@ torch.set_num_threads(1)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 labels_df = pd.read_csv('C:/data/vision_2/dirty_mnist_2nd_answer.csv')[:]
-imgs_dir = np.array(sorted(glob.glob('C:/data/vision_2/dirty_mnist_2nd_noise_clean/*')))[:]
+imgs_dir = np.array(sorted(glob.glob('C:/data/vision_2/dirty_mnist_2nd/*')))[:]
 labels = np.array(labels_df.values[:,1:])
 
-test_imgs_dir = np.array(sorted(glob.glob('C:/data/vision_2/test_dirty_mnist_2nd_noise_clean/*')))
+test_imgs_dir = np.array(sorted(glob.glob('C:/data/vision_2/test_dirty_mnist_2nd/*')))
 
 imgs=[]
 for path in tqdm(imgs_dir[:]):
@@ -32,7 +32,7 @@ for path in tqdm(imgs_dir[:]):
     imgs.append(img)
 imgs=np.array(imgs)
 
-# 저장소에서 load
+#======================================================== 저장소에서 load
 class MnistDataset_v1(Dataset):
     def __init__(self, imgs_dir=None, labels=None, transform=None, train=True):
         self.imgs_dir = imgs_dir
@@ -57,7 +57,7 @@ class MnistDataset_v1(Dataset):
         
         pass
 
-# 메모리에서 load
+#======================================================== 메모리에서 load
 class MnistDataset_v2(Dataset):
     def __init__(self, imgs=None, labels=None, transform=None, train=True):
         self.imgs = imgs
@@ -81,7 +81,7 @@ class MnistDataset_v2(Dataset):
         else:
             return img
 
-#reproduction을 위한 seed 설정
+#========================================================reproduction을 위한 seed 설정
 def seed_everything(seed: int = 42):
     random.seed(seed)
     np.random.seed(seed)
@@ -91,7 +91,7 @@ def seed_everything(seed: int = 42):
     torch.backends.cudnn.deterministic = True  # type: ignore
     torch.backends.cudnn.benchmark = True  
 
-#model 정의
+#========================================================model 정의
 
 # EfficientNet -b0(pretrained)
 # MultiLabel output
@@ -139,12 +139,12 @@ for fold in range(5):
         ])
 
 
-    epochs=30
+    epochs=11
     batch_size=32  #초기값 42     # 자신의 VRAM에 맞게 조절해야 OOM을 피할 수 있습니다.
     
     
     
-    # Data Loader
+    #======================================================== Data Loader
     train_dataset = MnistDataset_v2(imgs = imgs[train_idx], labels=labels[train_idx], transform=train_transform)
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 
@@ -154,7 +154,7 @@ for fold in range(5):
     
     # optimizer
     # polynomial optimizer를 사용합니다.
-    # 
+    # ========================================================
     optimizer = torch.optim.Adam(model.parameters(), lr = 1e-3)
     decay_steps = (len(train_dataset)//batch_size)*epochs
     scheduler_poly_lr_decay = PolynomialLRDecay(optimizer, max_decay_steps=decay_steps, end_learning_rate=1e-6, power=0.9)
@@ -222,7 +222,7 @@ for fold in range(5):
                                                                                                                                               np.mean(valid_batch_loss),
                                                                                                                                               time.time()-start))
 
-#Test Image 로드
+#========================================================Test Image 로드
 test_imgs=[]
 for path in tqdm(test_imgs_dir):
     test_img=cv2.imread(path, cv2.IMREAD_COLOR)
@@ -233,7 +233,7 @@ test_transform = transforms.Compose([
         transforms.ToTensor(),
         ])
 
-#Test 추론
+#========================================================Test 추론
 submission = pd.read_csv('C:/data/vision_2/sample_submission.csv')
 
 with torch.no_grad():
@@ -252,5 +252,7 @@ with torch.no_grad():
                 pred_test = model(X_test).cpu().detach().numpy()
                 submission.iloc[n*32:(n+1)*32,1:] += pred_test
 
+
+#========================================================제출물 
 submission.iloc[:,1:] = np.where(submission.values[:,1:]>=0.5, 1,0)
-submission.to_csv('C:/data/vision_2/EfficientNetB5-fold1.csv', index=False)
+submission.to_csv('C:/data/vision_2/EfficientNetB5-fold2.csv', index=False)

@@ -4,7 +4,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Flatten
 from tensorflow.keras.datasets import cifar10
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.applications import Xception
+from tensorflow.keras.applications import DenseNet169
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.utils import to_categorical
 
@@ -42,7 +42,7 @@ x_val = x_val.reshape(-1, 32, 32, 3)
 print(x_train.shape, x_test.shape, x_val.shape)
 
 #2. 모델링
-TF = Xception(weights= 'imagenet', include_top = False, input_shape = (32, 32, 3)) #레이어 16개
+TF = DenseNet169(weights= 'imagenet', include_top = False, input_shape = (32, 32, 3)) #레이어 16개
 TF.trainable = False #훈련시키지 않고 가중치만 가져오겠다.
 model = Sequential()
 model.add(TF)
@@ -61,13 +61,13 @@ model.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = [
 model.fit(x_train, y_train, epochs = 50, batch_size = 64, validation_data= (x_val, y_val), verbose = 1 ,callbacks = [es])
 
 #4. 평가, 예측
-loss= model.evaluate(x_test, y_test)
+loss, acc = model.evaluate(x_test, y_test)
 print('loss : ', loss)
 print('acc : ', acc)
 
 
 y_pred = model.predict(x_test[:10])
-print(y_pred)
+#print(y_pred)
 print(y_test[:10])
 print(np.argmax(y_test[:10], axis=-1))
 
@@ -75,5 +75,28 @@ print(np.argmax(y_test[:10], axis=-1))
 # loss :  [3.007906913757324, 0.10000000149011612]
 # [3 8 8 0 6 6 1 6 3 1]
 
+# loss :  4.386430263519287
+# acc :  0.5805000066757202
 
-
+'''
+Model: "sequential"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+densenet169 (Functional)     (None, 1, 1, 1664)        12642880
+_________________________________________________________________
+flatten (Flatten)            (None, 1664)              0
+_________________________________________________________________
+dense (Dense)                (None, 128)               213120
+_________________________________________________________________
+dense_1 (Dense)              (None, 64)                8256
+_________________________________________________________________
+dense_2 (Dense)              (None, 10)                650
+=================================================================
+Total params: 12,864,906
+Trainable params: 222,026
+Non-trainable params: 12,642,880
+_________________________________________________________________
+844
+0
+'''

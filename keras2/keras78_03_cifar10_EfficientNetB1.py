@@ -61,7 +61,7 @@ model.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = [
 model.fit(x_train, y_train, epochs = 50, batch_size = 64, validation_data= (x_val, y_val), verbose = 1 ,callbacks = [es])
 
 #4. 평가, 예측
-loss= model.evaluate(x_test, y_test)
+loss, acc = model.evaluate(x_test, y_test)
 print('loss : ', loss)
 print('acc : ', acc)
 
@@ -74,3 +74,28 @@ print(np.argmax(y_test[:10], axis=-1))
 #cifar10
 # loss :  [3.007906913757324, 0.10000000149011612]
 # [3 8 8 0 6 6 1 6 3 1]
+
+# loss :  2.3026280403137207
+# acc :  0.10000000149011612
+'''
+Model: "sequential"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+efficientnetb1 (Functional)  (None, 1, 1, 1280)        6575239
+_________________________________________________________________
+flatten (Flatten)            (None, 1280)              0
+_________________________________________________________________
+dense (Dense)                (None, 128)               163968
+_________________________________________________________________
+dense_1 (Dense)              (None, 64)                8256
+_________________________________________________________________
+dense_2 (Dense)              (None, 10)                650
+=================================================================
+Total params: 6,748,113
+Trainable params: 172,874
+Non-trainable params: 6,575,239
+_________________________________________________________________
+440
+0
+'''

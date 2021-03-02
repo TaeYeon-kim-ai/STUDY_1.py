@@ -76,3 +76,15 @@ print(np.argmax(y_test[:10], axis=-1))
 #cifar10
 # loss :  [3.007906913757324, 0.10000000149011612]
 # [3 8 8 0 6 6 1 6 3 1]
+
+'''
+#함수형
+# Model
+initial_model = vgg16
+last = initial_model.output
+x = Flatten()(last)
+x = Dense(32)(x)
+x = Dense(16)(x)
+output1 = Dense(10, activation = 'softmax')(x)
+model = Model(inputs = initial_model.input, outputs = output1)
+'''

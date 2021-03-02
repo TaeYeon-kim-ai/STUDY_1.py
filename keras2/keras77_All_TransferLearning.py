@@ -6,6 +6,7 @@ from tensorflow.keras.applications import MobileNet, MobileNetV2
 from tensorflow.keras.applications import DenseNet121, DenseNet169, DenseNet201
 from tensorflow.keras.applications import NASNetMobile, NASNetLarge
 from tensorflow.keras.applications import EfficientNetB0, EfficientNetB1, EfficientNetB2
+
 '''
 #VGG16
 model = VGG16()

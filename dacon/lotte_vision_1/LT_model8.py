@@ -41,9 +41,9 @@ import pandas as pd
 # np.save('C:/data/LPD_competition/npy/LT_x_pred_244.npy', arr = x_pred[0][0])
 
 #.npy Load
-x = np.load('C:/data/LPD_competition/npy/LT_x_train.npy', allow_pickle=True)
-y = np.load('C:/data/LPD_competition/npy/LT_y_train.npy', allow_pickle=True)
-target = np.load('C:/data/LPD_competition/npy/LT_x_pred.npy', allow_pickle=True)
+x = np.load('../../data/npy/LPD_train_x1.npy', allow_pickle=True)
+y = np.load('../../data/npy/LPD_train_y1.npy', allow_pickle=True)
+target = np.load('../../data/npy/target1.npy', allow_pickle=True)
 
 from tensorflow.keras.applications.efficientnet import preprocess_input
 x = preprocess_input(x)
@@ -70,7 +70,7 @@ x_train, x_val, y_train, y_val = train_test_split(x, y, train_size = 0.9, random
 bts = 128
 optimizer = Adam(learning_rate = 1e-3)
 
-train_generator = idg.flow(x_train, y_train, batch_size = bts, seed=2048)
+train_generator = idg.flow(x_train, y_train, batch_size = bts, seed=1024)
 valid_generator = idg2.flow(x_val, y_val)
 test_generator = idg2.flow(target)
 

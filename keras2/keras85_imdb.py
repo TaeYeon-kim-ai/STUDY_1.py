@@ -39,15 +39,15 @@ print(type(word_to_index))
 index_to_word = {}
 for key, value in word_to_index.items():
     index_to_word[value] = key
-print(index_to_word)
-print(index_to_word[1])
+# print(index_to_word)
+# print(index_to_word[1])
 print(len(index_to_word)) #88584
 print(index_to_word[88584]) #1
 
 for index, token in enumerate(("<pad>", "<sos>", "<unk>")) :
     index_to_word[index] = token
 
-print(' '.join([index_to_word[index] for index in x_train[0]]))
+#print(' '.join([index_to_word[index] for index in x_train[0]]))
 
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 max_len = 100
@@ -56,14 +56,17 @@ x_test = pad_sequences(x_test, maxlen=max_len)
 
 from sklearn.model_selection import train_test_split
 x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, train_size = 0.8, random_state = 256, shuffle = True)
+print(x_train.shape, x_val.shape, y_train.shape, y_val.shape) #(20000, 100) (5000, 100) (20000,) (5000,)
 
+x_train = x_train.reshape(-1, 100, 1)
+x_test = x_test.reshape(-1, 100, 1)
 
 #모델링
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Embedding, Dense, LSTM, Conv2D, Flatten, BatchNormalization, Dropout
 model = Sequential()
-model.add(Embedding(input_dim = 10000, output_dim = 230, input_length = 100))
-model.add(LSTM(128))
+#model.add(Embedding(input_dim = 10000, output_dim = 230, input_length = 100))
+model.add(LSTM(128, input_shape = (100, 1)))
 model.add(Dense(32, activation='relu'))
 model.add(BatchNormalization())
 model.add(Dense(64, activation='relu'))
@@ -77,7 +80,7 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLRO
 es = EarlyStopping(monitor = 'val_loss', patience = 30, verbose= 1, mode = 'auto')
 rl = ReduceLROnPlateau(monitor='val_loss', patience = 20, factor = 0.3, verbose = 1, mode = 'auto')
 model.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['acc'])
-history = model.fit(x_train, y_train, epochs = 200, batch_size = 32, validation_data = (x_val, y_val), verbose = 1 ,callbacks = [es, rl])
+history = model.fit(x_train, y_train, epochs = 200, batch_size = 128, validation_data = (x_val, y_val), verbose = 1 ,callbacks = [es, rl])
 
 
 #4.평가, 예측
@@ -97,5 +100,3 @@ plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.show()
-
-

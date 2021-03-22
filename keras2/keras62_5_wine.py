@@ -73,7 +73,7 @@ def create_hyperparameters() :
 es = EarlyStopping(monitor = 'loss', patience = 5, mode = 'auto')
 lr = ReduceLROnPlateau( monitor='val_loss', factor=0.3, patience=3, verbose=1, mode='auto')
 modelpath = '../data/modelCheckpoint/hyper_14_{epoch:02d}-{val_loss:.4f}.hdf5'
-cp = ModelCheckpoint(filepath= modelpath, monitor= 'val_loss', save_best_only=True, mode = 'auto')
+cp = ModelCheckpoint(filepath= modelpath, monitor1= 'val_loss', save_best_only=True, mode = 'auto')
 
 hyperparameters = create_hyperparameters() #정의된 하이퍼파리미터를 hyperparameters로 저장
 model2 = build_model()

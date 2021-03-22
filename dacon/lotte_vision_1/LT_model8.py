@@ -104,16 +104,3 @@ model.save_weights('C:/data/h5/LT_vision_1.h5')
 loss, acc = model.evaluate(test_generator)
 print("loss : ", loss)
 print("acc : ", acc)
-
-result = pd.read_csv("C:/data/LPD_competition/sample.csv")
-
-# prd = model.predict(x_test)
-# filenames = xy_test.filenames
-# nb_samples = len(filenames)
-# print(nb_samples)
-prd = model.predict_generator(test_generator, steps=72000)
-a = pd.DataFrame()
-prd = pd.Series(np.argmax(prd,axis=-1))
-prd = pd.concat([a,prd],axis=1)
-result.iloc[:,1] = prd.sort_index().values
-result.to_csv('C:/data/LPD_competition/sample_1.csv')

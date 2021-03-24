@@ -1,3 +1,5 @@
+
+
 #ImageNet Classification with Deep Convolutional Neural Networks
 import numpy as np
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -9,31 +11,26 @@ import tensorflow as tf
 
 print("GPUs: ", len(tf.config.experimental.list_physical_devices('GPU')))
 
-x = np.load('../../data/npy/train_x_224_gray.npy', allow_pickle=True)
-y = np.load('../../data/npy/train_y_224_gray.npy', allow_pickle=True)
-target = np.load('../../data/npy/predict_x_224_gray.npy', allow_pickle=True)
+x = np.load('../../data/npy/train_x_224_40.npy', allow_pickle=True)
+y = np.load('../../data/npy/train_y_224_40.npy', allow_pickle=True)
+target = np.load('../../data/npy/predict_x_224_40.npy', allow_pickle=True)
 
 print(x.shape)
 print(y.shape)
 print(target.shape)
 
-x = x.reshape(48000, 224, 224, 1)
-target = target.reshape(72000, 224, 224, 1)
-
 #generagtor
-from tensorflow.keras.applications.efficientnet import  preprocess_input
+from tensorflow.keras.applications.efficientnet import preprocess_input
+x = preprocess_input(x)
+target = preprocess_input(target)
+
 idg = ImageDataGenerator(
-    rescale = 1/255.,
     zoom_range = 0.2,
     height_shift_range=(-1,1),
     width_shift_range=(-1,1),
-    rotation_range=40, 
-    fill_mode='nearest'
-)
+    rotation_range=40)
 
-idg2 = ImageDataGenerator(
-    rescale = 1/255.
-)
+idg2 = ImageDataGenerator()
 
 from sklearn.model_selection import train_test_split
 x_train, x_val, y_train, y_val = train_test_split(x, y, train_size = 0.9, random_state = 66, shuffle = True)
@@ -48,7 +45,7 @@ test_generator = idg2.flow(target)
 
 #2. MODEL
 model = Sequential()
-img_shape = (224,224,1)
+img_shape = (224,224,3)
 no_of_classes=1000
 # 레이어 1
 model.add(Conv2D(96, (11,11), input_shape=img_shape, padding='same'))
@@ -100,7 +97,7 @@ mc = ModelCheckpoint('C:/data/MC/best_LT_vision2_LT_AlexNet.hdf5', save_best_onl
 #cp = latest_checkpoint('C:/data/MC/')
 es = EarlyStopping(monitor='val_loss', patience=15, verbose=1, mode='auto')
 rl = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=8, verbose=1, mode='auto')
-model.fit_generator(train_generator, epochs=100, verbose=1, validation_data= valid_generator, callbacks=[es, rl, mc])
+model.fit(train_generator, epochs=100, verbose=1, steps_per_epoch=x_train[-1]/32,validation_data= valid_generator, callbacks=[es, rl, mc])
 
 model.save('C:/data/h5/LT_vision_AlexNet.h5')
 model.save_weights('C:/data/h5/LT_vision_model2_AlexNet.h5')

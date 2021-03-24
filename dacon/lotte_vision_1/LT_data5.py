@@ -1,50 +1,34 @@
 import numpy as np
-import pandas as pd
-import os
-import cv2 as cv
-from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications.efficientnet import preprocess_input
 
-# INTER_NEAREST-최근 접 이웃 보간
-# INTER_LINEAR-쌍 선형 보간 (기본적으로 사용됨)
-# INTER_AREA-픽셀 영역 관계를 사용한 리샘플링. 무아레없는 결과를 제공하므로 이미지 데시 메이션에 선호되는 방법 일 수 있습니다. 그러나 이미지를 확대하면 INTER_NEAREST 방법과 유사합니다.
-# INTER_CUBIC-4x4 픽셀 이웃에 대한 쌍 입방 보간
-# INTER_LANCZOS4-8x8 픽셀 이웃에 대한 Lanczos 보간
+train_datagen = ImageDataGenerator(
+    preprocessing_function= preprocess_input,
+    rescale=1./255,
+    rotation_range=48,          # 지정된 각도 범위내에서 임의로 원본이미지를 회전
+    zoom_range=0.2,             # 지정된 확대/축소 범위내에서 임의로 원본이미지를 확대/축소
+    height_shift_range=(-1, 1), # 지정된 수직방향 이동 범위내에서 임의로 원본이미지를 이동
+    width_shift_range=(-1, 1),  # 지정된 수평방향 이동 범위내에서 임의로 원본이미지를 이동
+    shear_range=0.2,            # 밀림 강도 범위내에서 임의로 원본이미지를 변형
+)
 
-# train_img_arr = []
-# train_y = []
-# print(train_y)
-# for i in range(1000) :
-#     for j in range(48) :
-#         path = '../../data/LPD_competition/train/' + str(i) + '/' + str(j) + '.jpg'
-#         print(path)
-#         image = cv.imread(path)
-#         image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-#         image = cv.resize(image, (224, 224), interpolation=cv.INTER_CUBIC)
+# train_generator
+train_data = train_datagen.flow_from_directory(
+    '../../data/LPD_competition/train', 
+    target_size=(160, 160),
+    batch_size=48000,                              # 출력되는 y값 개수 설정
+    class_mode='sparse'
+)
 
-#         train_img_arr.append(image)
-#         train_y.append(i)
+print(train_data[0][0].shape)  # (48000, 64, 64, 3) 
+print(train_data[0][1].shape)  # (48000, 1000)
+# print(xy_test[0][0].shape)  # (9000, 64, 64, 3)
+# print(xy_test[0][1].shape)  # (9000, 1000) 
 
-# train_img_arr = np.asarray(train_img_arr)
-# train_y = np.asarray(train_y)
-# train_y = train_y.reshape(-1, 1)
-# train_y = to_categorical(train_y)
+np.save('../study/LPD_COMPETITION/npy/x_data.npy', arr=train_data[0][0])
+np.save('../study/LPD_COMPETITION/npy/y_data.npy', arr=train_data[0][1])
 
-# print(train_img_arr.shape)
-# print(train_y.shape)
+x = np.load('../study/LPD_COMPETITION/npy/x_data.npy')
+y = np.load('../study/LPD_COMPETITION/npy/y_data.npy')
 
-# np.save('../../data/npy/train_x_224_gray.npy', arr = train_img_arr)
-# np.save('../../data/npy/train_y_224_gray.npy', arr = train_y)
-
-#===
-test_image_arr = []
-for i in range(72000) :
-    path = '../../data/LPD_competition/test/' + str(i) + '.jpg'
-    image = cv.imread(path)
-    image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    image = cv.resize(image, (224, 224), interpolation=cv.INTER_CUBIC)
-    test_image_arr.append(image)
-    print(i)
-test_image_arr = np.asarray(test_image_arr)
-
-np.save('../../data/npy/predict_x_224_gray', arr = test_image_arr)
-    
+print(x.shape, y.shape)

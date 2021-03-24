@@ -1,4 +1,3 @@
-import os
 import os, glob, numpy as np
 from PIL import Image
 import numpy as np
@@ -13,7 +12,7 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adam
 from sklearn.model_selection import train_test_split
 from keras.callbacks import ReduceLROnPlateau
-#########데이터 로드
+import cv2 as cv
 
 caltech_dir =  '../../data/LPD_competition/train/' #폴더 경로지정
 categories = [] 
@@ -23,8 +22,8 @@ for i in range(0,1000) : #1000개  0부터 숫자 세서  i 안에 넣기
 
 nb_classes = len(categories) #nb_classes는 
 
-image_w = 256
-image_h = 256
+image_w = 128
+image_h = 128
 
 pixels = image_h * image_w * 3
 
@@ -43,24 +42,37 @@ for idx, cat in enumerate(categories):
     for i, f in enumerate(files):
         img = Image.open(f)
         img = img.convert("RGB")
-        img = img.resize((image_
-        .w, image_h))
+        img = img.resize((image_w, image_h))
         data = np.asarray(img)
 
         X.append(data)
         y.append(label)
 
-        if i % 1000 == 0:
+        if i % 700 == 0:
             print(cat, " : ", f)
 
 X = np.array(X)
 y = np.array(y)
 
-np.save("../../data/npy/LPD_train_x_256.npy", arr=X)
-np.save("../../data/npy/LPD_train_y_256.npy", arr=y)
+np.save("../../data/npy/LPD_train_x_128.npy", arr=X)
+np.save("../../data/npy/LPD_train_y_128.npy", arr=y)
 # x_pred = np.load("../data/npy/P_project_test.npy",allow_pickle=True)
-x = np.load("../../data/npy/LPD_train_x_256.npy",allow_pickle=True)
-y = np.load("../../data/npy/LPD_train_y_256.npy",allow_pickle=True)
+x = np.load("../../data/npy/LPD_train_x_128.npy",allow_pickle=True)
+y = np.load("../../data/npy/LPD_train_y_128.npy",allow_pickle=True)
 
 print(x.shape)
 print(y.shape)
+
+
+###############################################################
+
+test_image_arr = []
+for i in range(72000):
+    path = '../../data/LPD_competition/test/' + str(i) + '.jpg'
+    image = cv.imread(path)
+    image = cv.resize(image, (128, 128), interpolation = cv.INTER_CUBIC)
+    test_image_arr.append(image)
+    print(i)
+test_image_arr = np.asarray(test_image_arr)
+
+np.save('../../data/npy/predict_x_128.npy', arr = test_image_arr)

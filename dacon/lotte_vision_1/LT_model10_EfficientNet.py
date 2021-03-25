@@ -33,7 +33,7 @@ image_size = (160, 160, 3)
 bts = 32
 optimizer = Adam(learning_rate = 0.001)
 
-train_generator = idg.flow(x_train, y_train, batch_size = bts, seed = 128)
+train_generator = idg.flow(x_train, y_train, batch_size = bts, seed = 2048)
 valid_generator = idg2.flow(x_val, y_val)
 test_generator = idg2.flow(target)
 
@@ -44,8 +44,8 @@ TF = EfficientNetB5(weights="imagenet", include_top=False, input_shape = image_s
 TF.trainable = True
 x = TF.output
 x = Conv2D(256, 2, padding='SAME' ,activation='swish', 
-        activity_regularizer= regularizers.l2(1e-5), 
-        kernel_regularizer = regularizers.l2(1e-5))(x)
+        activity_regularizer= regularizers.l2(1e-4), 
+        kernel_regularizer = regularizers.l2(1e-4))(x)
 x = GlobalAveragePooling2D()(x)
 x = Flatten()(x)
 
@@ -62,9 +62,9 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLRO
 from tensorflow.train import Checkpoint, latest_checkpoint
 model.compile(loss = 'categorical_crossentropy', optimizer = optimizer, metrics = ['acc'])
 mc = ModelCheckpoint('C:/data/MC/best_LT_vision2_LT.hdf5', save_best_only=True, mode = 'auto')
-es = EarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto')
-rl = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, verbose=1, mode='auto')
-model.fit_generator(train_generator, epochs = 200, steps_per_epoch= len(x_train)/32, verbose=1, validation_data= valid_generator, callbacks=[es, rl, mc])
+es = EarlyStopping(monitor='val_loss', patience=5, verbose=1, mode='auto')
+rl = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, verbose=1, mode='auto')
+model.fit_generator(train_generator, epochs = 100, steps_per_epoch= len(x_train)/32, verbose=1, validation_data= valid_generator, callbacks=[es, rl, mc])
 
 model.save('C:/data/h5/LT_vision_6.h5')
 model.save_weights('C:/data/h5/LT_vision_model2_6.h5')

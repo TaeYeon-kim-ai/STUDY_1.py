@@ -12,7 +12,7 @@ for i in range(1000):
         path = '../../data/LPD_competition/train/' + str(i) + '/' + str(j) + '.jpg'
         print(path)
         image = cv.imread(path)
-        image = cv.resize(image, (192, 192), interpolation = cv.INTER_CUBIC)
+        image = cv.resize(image, (256, 256), interpolation = cv.INTER_CUBIC)
 
         train_image_arr.append(image)
         train_y.append(i)
@@ -26,8 +26,8 @@ print(train_image_arr.shape)
 print(train_y)
 print(train_y.shape)
 
-np.save('../../data/npy/train_x_192.npy', arr = train_image_arr)
-np.save('../../data/npy/train_y_192.npy', arr = train_y)
+np.save('../../data/npy/train_x_256.npy', arr = train_image_arr)
+np.save('../../data/npy/train_y_256.npy', arr = train_y)
 
 ###############################################################
 
@@ -35,9 +35,14 @@ test_image_arr = []
 for i in range(72000):
     path = '../../data/LPD_competition/test/' + str(i) + '.jpg'
     image = cv.imread(path)
-    image = cv.resize(image, (192, 192), interpolation = cv.INTER_CUBIC)
+    image = cv.resize(image, (256, 256), interpolation = cv.INTER_CUBIC)
     test_image_arr.append(image)
     print(i)
 test_image_arr = np.asarray(test_image_arr)
 
-np.save('../../data/npy/predict_x_192.npy', arr = test_image_arr)
+np.save('../../data/npy/predict_x_256.npy', arr = test_image_arr)
+
+
+
+
+

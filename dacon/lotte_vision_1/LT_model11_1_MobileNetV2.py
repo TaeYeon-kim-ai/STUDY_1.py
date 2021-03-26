@@ -6,9 +6,9 @@ from tensorflow.keras.optimizers import Adam
 import pandas as pd
 #1. DATA
 #.npy Load
-x = np.load('../../data/npy/train_x_192.npy', allow_pickle=True)
-y = np.load('../../data/npy/train_y_192.npy', allow_pickle=True)
-target = np.load('../../data/predict_x_192.npy', allow_pickle=True)
+x = np.load('../../data/npy/train_x_256.npy', allow_pickle=True)
+y = np.load('../../data/npy/train_y_256.npy', allow_pickle=True)
+target = np.load('../../data/predict_x_256.npy', allow_pickle=True)
 
 from tensorflow.keras.applications.efficientnet import preprocess_input
 x = preprocess_input(x)
@@ -28,8 +28,8 @@ from sklearn.model_selection import train_test_split
 x_train, x_val, y_train, y_val = train_test_split(x, y, train_size = 0.9, random_state = 128, shuffle = True)
 
 #control
-image_size = (192, 192, 3)
-bts = 32
+image_size = (256, 256, 3)
+bts = 16
 optimizer = Adam(learning_rate = 0.001)
 
 train_generator = idg.flow(x_train, y_train, batch_size = bts)

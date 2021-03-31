@@ -39,7 +39,7 @@ def solution_model():
 
     # compile
     model.compile(loss = 'mae', optimizer='adam', metrics='mse')
-    model.fit(xs, ys, epochs = 10, batch_size= 4)
+    model.fit(xs, ys, epochs = 100, batch_size= 1)
 
     # pred                          
     loss, mse = model.evaluate(xs, ys, batch_size= 1)
